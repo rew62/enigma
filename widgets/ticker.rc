@@ -1,0 +1,39 @@
+-- ticker.rc - Cairo-rendered compact stock ticker
+-- v1 2026-07-04 @rew62
+
+local HOME       = os.getenv("HOME") or ""
+local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (HOME .. "/.conky/enigma")
+
+conky.config = {
+    update_interval = 60,
+    double_buffer   = true,
+
+    own_window             = true,
+    own_window_type        = 'normal',
+    own_window_title       = 'enigma-stocks',
+    own_window_transparent = true,
+    own_window_argb_visual = true,
+    own_window_argb_value  = 0,
+    own_window_hints       = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+
+    alignment = 'top_right',
+    gap_x     = 173,
+    gap_y     = 735,
+
+    minimum_width       = 154,
+    maximum_width       = 154,
+    border_inner_margin = 0,
+    border_outer_margin = 0,
+    border_width        = 0,
+
+    use_xft       = true,
+    font          = 'Rubik:size=9',
+    default_color = 'ffffff',
+
+    lua_load           = ENIGMA_DIR .. '/settings.lua ' .. ENIGMA_DIR .. '/scripts/loadall.lua',
+    lua_startup_hook   = 'vars',
+    lua_draw_hook_pre  = 'main',
+    lua_mouse_hook     = 'mouse_hook',
+}
+
+conky.text = [[${lua_parse conky_stocks_size}]]

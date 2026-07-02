@@ -1,0 +1,41 @@
+-- rss.rc - RSS viewer widget
+-- v1 2026-07-04 @rew62
+
+local HOME       = os.getenv("HOME") or ""
+local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (HOME .. "/.conky/enigma")
+
+conky.config = {
+    update_interval = 1,
+    double_buffer = true,
+
+    own_window = true,
+    own_window_type = 'normal',
+    own_window_title = 'rss',
+    own_window_transparent = true,
+    own_window_argb_visual = true,
+    own_window_argb_value = 0,
+    own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+
+    alignment = 'top_left',
+    gap_x = 2630,
+    gap_y = 1200,
+
+    minimum_width = 420,
+    maximum_width = 420,
+
+    use_xft = true,
+    --font = 'DejaVuSansM Nerd Font Propo:size=8',
+    --font = 'Archivo Narrow:size=10',
+    font = 'Barlow Condensed:size=10',
+    default_color = 'white',
+
+    -- lua load
+    lua_load = ENIGMA_DIR .. '/settings.lua ' .. ENIGMA_DIR .. '/scripts/loadall.lua',
+    lua_draw_hook_post = 'main',
+    lua_startup_hook = 'startup',
+    lua_mouse_hook = 'mouse_hook',
+};
+
+conky.text = [[
+${voffset 10}${execp cat /dev/shm/conky/rss/rss.txt}
+]];

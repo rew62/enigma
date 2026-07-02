@@ -1,0 +1,87 @@
+#!/bin/bash
+# rc - run conky config files from current directory tree
+# usage:
+#   rc             -> fzf select from all .rc/.lua files in tree
+#   rc name        -> finds name.rc in tree
+#   rc name.rc     -> finds name.rc in tree
+#   rc name.lua    -> finds name.lua in tree
+
+CONFIG_DIR="$(pwd)"
+
+fzf_select() {
+    local -n _files=$1
+    local prompt=$2
+    local rel selected
+    rel=$(printf "%s\n" "${_files[@]}" | sed "s|^$CONFIG_DIR/||" | fzf --prompt="$prompt")
+    [[ -n "$rel" ]] && selected="$CONFIG_DIR/$rel"
+    printf "%s" "$selected"
+}
+
+select_menu() {
+    local -n _files=$1
+    local chosen
+    echo "Select a conky config file to run:"
+    select FILE in "${_files[@]}"; do
+        [[ -n "$FILE" ]] && { chosen="$FILE"; break; }
+        printf "\e[1;31mInvalid selection.\e[0m\n"
+    done
+    printf "%s" "$chosen"
+}
+
+pick_file() {
+    local -n _candidates=$1
+    if [[ ${#_candidates[@]} -eq 1 ]]; then
+        printf "%s" "${_candidates[0]}"
+    elif command -v fzf >/dev/null 2>&1; then
+        fzf_select _candidates "Select a conky config: "
+    else
+        select_menu _candidates
+    fi
+}
+
+if [[ -n "$1" ]]; then
+    if [[ "$1" == *.* ]]; then
+        TARGET="$1"
+    else
+        TARGET="$1.rc"
+    fi
+
+    mapfile -t MATCHES < <(find "$CONFIG_DIR" -type f -name "$TARGET")
+
+    if [[ ${#MATCHES[@]} -eq 0 ]]; then
+        printf "\e[1;31mError: %s not found under %s\e[0m\n" "$TARGET" "$CONFIG_DIR"
+        exit 1
+    fi
+
+    FULL_PATH=$(pick_file MATCHES)
+else
+    mapfile -t RC_FILES < <(find "$CONFIG_DIR" -type f \( -name "*.rc" -o -name "*.lua" \) | sort)
+
+    if [[ ${#RC_FILES[@]} -eq 0 ]]; then
+        printf "\e[1;31mNo .rc or .lua files found under %s\e[0m\n" "$CONFIG_DIR"
+        exit 1
+    fi
+
+    FULL_PATH=$(pick_file RC_FILES)
+fi
+
+if [[ -z "$FULL_PATH" ]]; then
+    printf "\e[1;31mNo file selected.\e[0m\n"
+    exit 1
+fi
+
+if [[ ! -f "$FULL_PATH" ]]; then
+    printf "\e[1;31mNo valid config selected.\e[0m\n"
+    exit 1
+fi
+
+TARGET_DIR="$(dirname "$FULL_PATH")"
+cd "$TARGET_DIR" || { printf "\e[1;31mFailed to cd into %s\e[0m\n" "$TARGET_DIR"; exit 1; }
+
+printf "\e[1;32mRunning Conky with: %s\e[0m\n" "$(basename "$FULL_PATH")"
+
+# Wayland: uncomment to force conky onto its X11/XWayland backend
+# (native Wayland backend lacks the ARGB/click-through support these
+# widgets rely on); no-op on a real X11 session.
+# exec env WAYLAND_DISPLAY= XDG_SESSION_TYPE=x11 conky -c "$FULL_PATH"
+exec conky -c "$FULL_PATH"

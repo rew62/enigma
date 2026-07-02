@@ -1,0 +1,51 @@
+-- arc.rc - horizon arc & planets & sun/moon & sunrise/sunset times & Icons & current weather.
+-- portions of this code adapted from gtex62-clean-suite/weather.conky.conf widget by @gtex62, with modifications.
+-- v1 2026-07-04 @rew62
+
+local HOME        = os.getenv("HOME") or ""
+local ENIGMA_DIR  = os.getenv("ENIGMA_DIR")    or (HOME .. "/.conky/enigma")
+local XDG         = os.getenv("XDG_CACHE_HOME") or "/dev/shm"
+local CACHE_DIR   = os.getenv("CONKY_CACHE_DIR") or (XDG .. "/conky")
+local CURRENT_PNG = CACHE_DIR .. "/icons/current.png"
+conky.config = {
+  alignment              = 'top_middle',
+  background             = false,
+  double_buffer          = true,
+  imlib_cache_size       = 0,
+  update_interval        = 10,
+
+  use_xft                = true,
+  font                   = 'DejaVuSansM Nerd Font Propo Mono:size=10',
+
+  own_window             = true,
+  own_window_title       = 'conky-arc',
+  own_window_type        = 'normal',
+  own_window_hints       = 'undecorated,sticky,skip_taskbar,skip_pager,below',
+  own_window_argb_visual = true,
+  own_window_argb_value  = 0,
+  own_window_transparent = true,
+  own_window_class       = 'Conky',
+
+  gap_x                  = 0,
+  gap_y                  = 195,
+
+  --minimum_width          = 640,
+  minimum_width          = 570,
+  minimum_height         = 280,
+
+  draw_shades            = false,
+  draw_borders           = false,
+  default_color          = 'FFFFFF',
+  color1                 = 'A0A0A0',
+
+  lua_draw_hook_pre      = 'owm_draw_horizon',
+  lua_load               = ENIGMA_DIR .. '/settings.lua ' .. ENIGMA_DIR .. '/scripts/loadall.lua ./arc6.lua',
+  lua_startup_hook = 'vars',
+  lua_mouse_hook   = 'mouse_hook',
+}
+
+conky.text = [[
+${lua_parse owm_fetch}
+${execi  60 python3 ]] .. ENIGMA_DIR .. [[/scripts/sky_update.py}
+${lua_parse owm_sun_labels}
+]]

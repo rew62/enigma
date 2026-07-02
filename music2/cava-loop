@@ -1,0 +1,77 @@
+#!/bin/bash
+#################################################################
+#                                                               #
+#  Starts the cava data stream and saves it to cava-output.     #
+#  It also starts a loop to see if spectrum-equalizer conky     #
+#  is still running. If not running, then it terminates cava.   #
+#                                                               #
+#  Scripted by Koentje  (remon@cobrasoft.nl)       version 1.8  #           #
+#                                                               #
+#################################################################
+# v1 2026-07-04 @rew62
+
+if [ "$1" != "gocava" ]; then
+   echo -e "\n\e[31mERROR:\e[m cava-loop can not start outside of conky!\n"
+   exit 1
+fi
+
+source "./eq-settings.ini"
+parent_pid="$2"
+[ -f "$eqconfig" ] || echo "${default_config:-1}" > "$eqconfig"
+
+
+# Terminate all
+terminate() {
+  echo -e "$(basename $0) : Cava engine terminated" > /dev/stdout
+  killall $(basename $0)
+  killall cava
+  # killall xdotool 2>/dev/null  # only needed if xdotool click listener is active
+  exit 0
+}
+
+# Check if cava and conky are already running, if so then exit script
+  icava=$(pgrep -x cava)
+  iconky=$(pgrep -f "spectrum-eq.conky")
+  if [ -n "$icava" ] && [ -n "$iconky" ]; then
+    # Exit this script because both are already running!
+    exit 1
+  elif [ -n "$icava" ] && [ -z "$iconky" ]; then
+    # Terminate cava engine because spectrum conky is not running!
+    terminate
+  fi
+
+
+# Monitor: exit cava when conky dies (PID-based, no wmctrl needed)
+(
+  if [ -z "$parent_pid" ]; then exit 0; fi
+  while sleep 5; do
+    if ! kill -0 "$parent_pid" 2>/dev/null; then
+      terminate
+    fi
+  done
+) &
+
+# Check cava-config number of bars and change that number in the spectrum configs
+  cavabars=$(grep 'bars = ' "./cava-config" | awk -F '= ' '{print $2}')
+  while read -r file
+  do
+      luabars=$(grep 'bars=' "./spectrum-configs/$file" | awk '{print $1}' | awk -F '=' '{print $2}')
+      if ! [ "$cavabars" = "$luabars" ]; then
+        echo "$(basename $0) : Changing bar numbers in Spectrum config '$file' to $cavabars" > /dev/stdout
+        sed -i "/bars=$luabars/c\bars=$cavabars                              -- nr of bars must be set in cava-config!!! (needs a restart of conky)" "./spectrum-configs/$file"
+      fi
+  done< <(ls -1 ./spectrum-configs)
+
+
+# Saves last line from cava data stream to tmp file
+  echo "$(basename $0) : Cava engine started" > /dev/stdout
+  echo "$(basename $0) : Output to $cavaout" > /dev/stdout
+  while read -r  line
+  do
+     echo "$line" > "$cavaout"
+     # echo "$line" > "${cavaout}.tmp" && mv "${cavaout}.tmp" "$cavaout"  # atomic: fixes race condition, costs one mv fork per frame
+  done< <(cava -p ./cava-config)
+  # done< <(stdbuf -oL cava -p ./cava-config)  # stdbuf: redundant if cava calls fflush() itself; costs ~1% CPU
+  terminate
+
+exit 0

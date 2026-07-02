@@ -1,0 +1,47 @@
+-- indices2.rc - Cairo-rendered compact index ticker (Yahoo Finance, top
+-- section; FinnHub backs the expanded extra-symbols section, shared with
+-- ticker.rc -- see indices2.lua)
+-- Standalone test harness -- not yet placed in the master stack layout.
+-- "Indices" rows pull real index values from Yahoo's keyless chart API
+-- instead of ETF proxies.
+-- v1 2026-07-04 @rew62
+
+local HOME       = os.getenv("HOME") or ""
+local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (HOME .. "/.conky/enigma")
+
+conky.config = {
+    -- 1s redraw so Shift+Right-click expand/collapse is instant; the actual
+    -- Yahoo/FinnHub fetches are independently throttled by their own
+    -- TTLs in indices2.lua, so this doesn't increase request volume.
+    update_interval = 1,
+    double_buffer   = true,
+
+    own_window             = true,
+    own_window_type        = 'normal',
+    own_window_title       = 'enigma-indices2',
+    own_window_transparent = true,
+    own_window_argb_visual = true,
+    own_window_argb_value  = 0,
+    own_window_hints       = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+
+    alignment = 'top_right',
+    gap_x     = 170,    -- offset from the standard 173 so a second stock widget can run beside it
+    gap_y     = 1020,   -- placeholder; not yet slotted into the stack layout
+
+    minimum_width        = 154,
+    maximum_width        = 154,
+    border_inner_margin = 0,
+    border_outer_margin = 0,
+    border_width        = 0,
+
+    use_xft       = true,
+    font          = 'Rubik:size=9',
+    default_color = 'ffffff',
+
+    lua_load           = ENIGMA_DIR .. '/settings.lua ' .. ENIGMA_DIR .. '/scripts/loadall.lua',
+    lua_startup_hook   = 'vars',
+    lua_draw_hook_pre  = 'main',
+    lua_mouse_hook     = 'mouse_hook',
+}
+
+conky.text = [[${lua_parse conky_indices2_size}]]

@@ -1,0 +1,58 @@
+-- enigma disk widget - NVMe I/O tick graphs with Cairo column header
+-- Read ticks rise above; write ticks fall below the center split lines.
+-- v1 2026-07-04 @rew62
+
+local HOME       = os.getenv("HOME") or ""
+local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (HOME .. "/.conky/enigma")
+
+local function read_env_disk()
+    local f = io.open(ENIGMA_DIR .. "/.env", "r")
+    if f then
+        for line in f:lines() do
+            local v = line:match("^DISK_DEV=(.+)$")
+            if v then f:close(); return v:gsub('"', ''):gsub("'", "") end
+        end
+        f:close()
+    end
+    return "nvme0n1"
+end
+
+conky.config = {
+    update_interval = 1,
+    double_buffer   = true,
+    diskio_avg_samples = 3,
+
+    own_window            = true,
+    own_window_type       = 'normal',
+    own_window_title      = 'enigma-disk',
+    own_window_transparent = true,
+    own_window_argb_visual = true,
+    own_window_argb_value  = 0,
+    own_window_hints      = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+
+    alignment = 'top_right',
+    gap_x     = 175,
+    gap_y     = 335,   -- C2 W4
+
+    minimum_width  = 150,
+    maximum_width  = 150,
+    border_inner_margin = 2,
+    border_outer_margin = 0,
+    border_width        = 0,
+
+    use_xft       = true,
+    short_units   = true,
+    font          = 'Rubik:size=10',
+    default_color = 'ffffff',
+    color2        = '2D9EEA',
+
+    -- Disk device for I/O graphs (.env DISK_DEV, or the literal fallback)
+    template1 = read_env_disk(),
+
+    lua_load           = ENIGMA_DIR .. '/settings.lua ' .. ENIGMA_DIR .. '/scripts/loadall.lua',
+    lua_startup_hook   = 'vars',
+    lua_draw_hook_pre  = 'main',
+    lua_mouse_hook     = 'mouse_hook',
+}
+
+conky.text = [[${lua_parse disk_height}]]

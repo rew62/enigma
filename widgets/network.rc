@@ -1,0 +1,62 @@
+-- network.rc - enigma network widget - adaptive wifi/wired header line
+-- Wifi: glyph + SSID + signal%; wired: lan glyph + interface name.
+-- v1 2026-07-04 @rew62
+
+local HOME       = os.getenv("HOME") or ""
+local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (HOME .. "/.conky/enigma")
+
+local function read_env_iface()
+    local f = io.open(ENIGMA_DIR .. "/.env", "r")
+    if f then
+        for line in f:lines() do
+            local v = line:match("^INTERFACE_NAME=(.+)$")
+            if v then f:close(); return v:gsub('"', ''):gsub("'", "") end
+        end
+        f:close()
+    end
+    return "wlp2s0"
+end
+
+conky.config = {
+    update_interval = 1,
+    double_buffer   = true,
+
+    own_window            = true,
+    own_window_type       = 'normal',
+    own_window_title      = 'enigma-net',
+    own_window_transparent = true,
+    own_window_argb_visual = true,
+    own_window_argb_value  = 0,
+    own_window_hints      = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+
+    alignment = 'top_right',
+    gap_x     = 175,
+    gap_y     = 472,   -- C2 W5
+
+    minimum_width  = 150,
+    maximum_width  = 150,
+    minimum_height = 142,  -- 32 top (wifi/wired+IP) + 90 graph + 20 bot (IN/OUT)
+    border_inner_margin = 2,
+    border_outer_margin = 0,
+    border_width        = 0,
+
+    use_xft       = true,
+    font          = 'Roboto:size=7',
+    default_color = 'ffffff',
+    color2        = '2D9EEA',
+
+    -- Network interface (wifi); wired detection uses ${wireless_essid}
+    template1 = read_env_iface(),
+
+    -- Lua: draw graph first (pre), then conky text renders on top
+    lua_load           = ENIGMA_DIR .. '/settings.lua ' .. ENIGMA_DIR .. '/scripts/loadall.lua',
+    lua_startup_hook   = 'vars',
+    lua_draw_hook_pre  = 'main',
+    lua_mouse_hook     = 'mouse_hook',
+}
+
+conky.text = [[
+${if_match "${wireless_essid ${template1}}" != ""}${if_match "${wireless_essid ${template1}}" != "off/any"}${color2}${font Material:size=10}${alignr}${voffset -2}${font Rubik:bold:size=7}${color}${wireless_essid ${template1}} ${color2}(${wireless_link_qual_perc ${template1}}%)${else}${color2}${font Symbols Nerd Font Mono:size=10}󰲝${alignr}${voffset -2}${font Rubik:bold:size=7}${color}${gw_iface}${endif}${else}${color2}${font Symbols Nerd Font Mono:size=10}󰲝${alignr}${voffset -2}${font Rubik:bold:size=7}${color}${gw_iface}${endif}
+${font Rubik:bold:size=7}${color #9ed1ff}${addr ${gw_iface}}${alignr}${color}${texeci 86400 curl -s https://api.ipify.org}
+${voffset 99}${font Rubik:bold:size=7}${color2}IN: ${color}${tcp_portmon 1 32767 count}  ${offset 7}${color2}OUT: ${color}${tcp_portmon 32768 61000 count}${alignr}${color2}TOTAL: ${color}${tcp_portmon 1 65535 count}
+]]

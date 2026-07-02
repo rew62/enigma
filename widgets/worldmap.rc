@@ -1,0 +1,40 @@
+-- worldmap.rc - Compact 150px day/night world map + sun footer
+-- v1 2026-07-04 @rew62
+
+local HOME       = os.getenv("HOME") or ""
+local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (HOME .. "/.conky/enigma")
+
+conky.config = {
+    own_window             = true,
+    own_window_type        = 'normal',
+    own_window_title       = 'worldmap',
+    own_window_transparent = true,
+    own_window_argb_visual = true,
+    own_window_argb_value  = 0,
+    own_window_hints       = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+
+    double_buffer   = true,
+    update_interval = 60,
+
+    alignment  = 'top_right',
+    gap_x      = 5,
+    gap_y      = 198,   -- C1 W2
+
+    minimum_width  = 150,
+    maximum_width  = 150,
+    minimum_height = 94,
+
+    border_inner_margin = 2,
+    border_outer_margin = 0,
+    border_width        = 0,
+
+    use_xft       = true,
+    font          = 'Roboto:size=2',
+    default_color = 'white',
+
+    lua_load           = ENIGMA_DIR .. '/settings.lua ' .. ENIGMA_DIR .. '/scripts/loadall.lua',
+    lua_draw_hook_post = 'main',
+    lua_mouse_hook     = 'mouse_hook',
+}
+
+conky.text = [[]]

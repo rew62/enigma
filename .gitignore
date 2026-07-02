@@ -1,0 +1,12 @@
+.env
+*.env
+*.hold
+*.notes
+.claude
+*.dev*
+**/dev/
+**/.cache/
+!.env-example
+earth_backup.png
+*.swp
+__pycache__/

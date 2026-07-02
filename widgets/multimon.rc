@@ -1,0 +1,53 @@
+-- multimon.rc - Multi-Month Calendar (150px compact)
+-- configure months, start month, Starting DoW in scripts/multimon.sh
+-- v1 2026-07-04 @rew62
+
+local HOME       = os.getenv("HOME") or ""
+local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (HOME .. "/.conky/enigma")
+
+conky.config = {
+  own_window = true,
+  own_window_argb_visual = true,
+  own_window_transparent = true,
+  own_window_hints  = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+  own_window_title  = 'multimon',
+  own_window_argb_value = 0,
+
+  update_interval = 600,
+
+  double_buffer = true,
+  no_buffers = true,
+  text_buffer_size = 2048,
+
+  alignment = 'top_right',
+  gap_x = 5,
+  gap_y = 300,   -- C1 W3
+  minimum_width = 150,
+  maximum_width = 150,
+
+  border_inner_margin = 2,
+  border_outer_margin = 0,
+  border_width = 0,
+  use_spacer = 'none',
+
+  draw_shades = false,
+  draw_outline = false,
+  draw_borders = false,
+  draw_graph_borders = false,
+
+  override_utf8_locale = true,
+  use_xft = true,
+  font = 'ubuntu light:size=7',
+  xftalpha = 0.2,
+  uppercase = false,
+
+-- Lua Load
+  lua_load = ENIGMA_DIR .. '/settings.lua ' .. ENIGMA_DIR .. '/scripts/loadall.lua',
+  lua_startup_hook   = 'vars',
+  lua_draw_hook_post = 'main',
+  lua_mouse_hook     = 'mouse_hook',
+}
+
+conky.text = [[
+${voffset 5}$color${execpi 3600 ]] .. ENIGMA_DIR .. [[/scripts/multimon.sh}${color}${voffset 5}
+]]

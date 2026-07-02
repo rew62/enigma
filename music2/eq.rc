@@ -1,0 +1,72 @@
+-- ############################################################
+-- #                                                          #
+-- #   SPECTRUM EQUALIZER                                     #
+-- #                                                          #
+-- ############################################################
+-- v1 2026-07-04 @rew62
+   print("\n\27[33m----[ Spectrum Equalizer v1.8a ]----\27[m\n")
+   os.execute("./cava-loop gocava $PPID &")
+-- ############################################################
+-- ################  DO NOT EDIT ABOVE !!! # ##################
+-- ############################################################
+
+conky.config = {
+	background = false,
+	alignment = 'top_right',
+	gap_x = 410,
+	gap_y = 720,
+	minimum_width = 340,
+	minimum_height = 100,
+	draw_borders = false,
+	draw_outline = false,
+	draw_shades = false,
+	double_buffer = true,
+	no_buffers = false,
+	out_to_console = false,
+	out_to_stderr = false,
+	own_window = true,
+	own_window_class = 'conky-spectrum-equalizer',  -- DO NOT CHANGE !!!
+	own_window_title = 'conky-spectrum-equalizer',  -- DO NOT CHANGE !!!
+	own_window_type = 'normal',
+	own_window_transparent = true,
+	own_window_colour = 'f00000',
+	own_window_argb_visual = true,
+	own_window_argb_value = 0,
+	own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+	use_xft = true,
+	xftalpha = 1,
+	font = 'Noto Sans:size=8',
+
+--  The shorter the interval, the more acurate and smoother the bars will flow, but more CPU usage!!
+--  Can be set from .01 to .2
+--  Also in cava-config you can play with noise_reduction for smoothness.
+	update_interval = .06,
+	lua_load = './cava-spectrum.lua',
+	lua_mouse_hook = 'mouse_hook',
+
+};
+
+conky.text = [[
+#
+${lua main_bars}
+#               ^^^^^  Set the spectrum config to load
+#
+# Configs:      blocks
+#               bubbles
+#               default
+#               default-flip
+#               default-flip-reflection
+#               default-reflection
+#               default-slick
+#               fade
+#               fade2
+#               flames
+#               half-bubbles
+#               rings
+#               rings-small
+#               rew62
+#               skewed1
+#               skewed2
+#               skewed-transparent
+#
+]];
