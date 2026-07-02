@@ -16,18 +16,8 @@ do
     end
 end
 
-local function read_env_iface()
-    local f = io.open(ENIGMA_DIR .. "/.env", "r")
-    if f then
-        for line in f:lines() do
-            local v = line:match("^INTERFACE_NAME=(.+)$")
-            if v then f:close(); return v:gsub('"', ''):gsub("'", "") end
-        end
-        f:close()
-    end
-    return "wlp2s0"
-end
-local NET_IFACE = read_env_iface()
+local env = require("env")
+local NET_IFACE = env.get("INTERFACE_NAME", "wlp2s0")
 
 -- ── layout ──────────────────────────────────────────────────────────────────
 local M   = 2       -- left/right margin (border_inner_margin=2 ignored by Cairo, applied manually)

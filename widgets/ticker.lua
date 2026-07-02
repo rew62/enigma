@@ -5,8 +5,10 @@ local HOME      = os.getenv("HOME")
 local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (HOME .. "/.conky/enigma")
 local CACHE_DIR = "/dev/shm/conky/stocks"
 local CACHE_TTL = 120
-local ENV_FILE  = ENIGMA_DIR .. "/.env"
 local CONF_DIR  = ENIGMA_DIR .. "/widgets"
+
+package.path = ENIGMA_DIR .. "/scripts/?.lua;" .. package.path
+local env = require("env")
 
 -- ── layout ──────────────────────────────────────────────────────────────────
 local M   = 4
@@ -56,18 +58,8 @@ local function hline(cr, y)
 end
 
 -- ── data helpers ─────────────────────────────────────────────────────────────
-local _api_key = nil
-
 local function load_api_key()
-    if _api_key then return _api_key end
-    local f = io.open(ENV_FILE, "r")
-    if not f then return nil end
-    for line in f:lines() do
-        local val = line:match("^FINNHUB_API_KEY=(.+)$")
-        if val then _api_key = val:match("^%s*(.-)%s*$"); break end
-    end
-    f:close()
-    return _api_key
+    return env.get("FINNHUB_API_KEY")
 end
 
 local function cache_age(symbol)

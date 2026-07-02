@@ -3,28 +3,12 @@
 -- v1 2026-07-04 @rew62
 
 local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma"
-local env_path = ENIGMA_DIR .. "/.env"
 package.path = package.path .. ";./?.lua;../?.lua;" .. ENIGMA_DIR .. "/scripts/?.lua"
+local env = require("env")
 
-local _env = {}
-do
-    local ef = io.open(env_path, "r")
-    if ef then
-        for line in ef:lines() do
-            local stripped = line:match("^([^#]*)") or ""
-            local k, v = stripped:match("^%s*([%w_]+)%s*=%s*([^%s]+)%s*$")
-            if k and v then
-                v = v:match('^"(.*)"$') or v:match("^'(.*)'$") or v
-                _env[k] = v
-            end
-        end
-        ef:close()
-    end
-end
-
-local LATITUDE        = _env.lat or _env.LAT or "40.7128"
-local LONGITUDE       = _env.lon or _env.LON or "-74.0060"
-local NWS_STATION     = _env.NWS_STATION or nil   -- optional override, e.g. NWS_STATION=KIAD
+local LATITUDE        = env.get("LAT", "40.7128")
+local LONGITUDE       = env.get("LON", "-74.0060")
+local NWS_STATION     = env.get("NWS_STATION")   -- optional override, e.g. NWS_STATION=KIAD
 local USER_AGENT      = "conky-nws-weather/1.0"
 
 local GRID_CACHE_FILE = "/tmp/nws_grid.json"

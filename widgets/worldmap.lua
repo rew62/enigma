@@ -6,7 +6,10 @@ require 'cairo'
 local SCRIPT_DIR = (debug.getinfo(1, 'S').source:match("@?(.*/)" ) or "./")
 local CACHE_DIR  = os.getenv("CONKY_CACHE_DIR") or "/dev/shm/conky"
 local OWM_JSON   = CACHE_DIR .. "/owm_current.json"
-local ENV_FILE   = (os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma") .. "/.env"
+local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma"
+
+package.path = ENIGMA_DIR .. "/scripts/?.lua;" .. package.path
+local env = require("env")
 
 local MAP_X  = 2
 local MAP_Y  = 2
@@ -28,21 +31,8 @@ local loc_lat, loc_lon = nil, nil
 
 local function load_location()
     if loc_lat then return end
-    local f = io.open(ENV_FILE, "r")
-    if not f then return end
-    for line in f:lines() do
-        local v = line:match("^%s*LAT%s*=%s*(.-)%s*$")
-        if v then
-            v = v:gsub("^[\"']", ""):gsub("[\"']$", "")
-            loc_lat = tonumber(v)
-        end
-        v = line:match("^%s*LON%s*=%s*(.-)%s*$")
-        if v then
-            v = v:gsub("^[\"']", ""):gsub("[\"']$", "")
-            loc_lon = tonumber(v)
-        end
-    end
-    f:close()
+    loc_lat = tonumber(env.get("LAT"))
+    loc_lon = tonumber(env.get("LON"))
 end
 
 local function clamp(v, lo, hi)

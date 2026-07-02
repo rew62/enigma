@@ -13,8 +13,10 @@ local HOME      = os.getenv("HOME")
 local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (HOME .. "/.conky/enigma")
 local CACHE_DIR = "/dev/shm/conky/indices2"
 local CACHE_FILE = CACHE_DIR .. "/quotes.json"
-local ENV_FILE  = ENIGMA_DIR .. "/.env"
 local CONF_DIR  = ENIGMA_DIR .. "/widgets"
+
+package.path = ENIGMA_DIR .. "/scripts/?.lua;" .. package.path
+local env = require("env")
 
 -- Yahoo's chart endpoint is keyless and uncapped -- this TTL just keeps it
 -- from being hammered on every 1s redraw.
@@ -88,18 +90,8 @@ local function hline(cr, y)
 end
 
 -- ── data helpers ─────────────────────────────────────────────────────────────
-local _finnhub_key = nil
-
 local function load_finnhub_key()
-    if _finnhub_key then return _finnhub_key end
-    local f = io.open(ENV_FILE, "r")
-    if not f then return nil end
-    for line in f:lines() do
-        local val = line:match("^FINNHUB_API_KEY=(.+)$")
-        if val then _finnhub_key = val:match("^%s*(.-)%s*$"); break end
-    end
-    f:close()
-    return _finnhub_key
+    return env.get("FINNHUB_API_KEY")
 end
 
 local function cache_mtime(file)

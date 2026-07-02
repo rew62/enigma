@@ -9,18 +9,7 @@ package.path = "./?.lua;../?.lua;./scripts/?.lua;../scripts/?.lua;" .. package.p
 
 require("draw_bg")    -- defines global try_require(), draw_bg(), draw_dividers()
 require("functions")  -- defines global conky_fmtpct(), conky_fmtspeed()
-
-local function read_env(key, fallback)
-    local f = io.open(ENIGMA_DIR .. "/.env", "r")
-    if f then
-        for line in f:lines() do
-            local v = line:match("^" .. key .. "=(.+)$")
-            if v then f:close(); return v:gsub('"', ''):gsub("'", "") end
-        end
-        f:close()
-    end
-    return fallback
-end
+local env = require("env")
 
 -- ── per-widget setup functions ──────────────────────────────────────────────
 -- For widgets too custom for the generic cfg.runner case below (their own
@@ -36,7 +25,7 @@ end
 local function setup_disk()
     local window = require("window")
     local disk   = require("disk")
-    local dev    = read_env("DISK_DEV", "nvme0n1")
+    local dev    = env.get("DISK_DEV", "nvme0n1")
 
     DISK_TOP_OFFSET = 31
     DISK_BOT_OFFSET = 4

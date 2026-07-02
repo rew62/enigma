@@ -5,17 +5,8 @@
 local HOME       = os.getenv("HOME") or ""
 local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (HOME .. "/.conky/enigma")
 
-local function read_env_iface()
-    local f = io.open(ENIGMA_DIR .. "/.env", "r")
-    if f then
-        for line in f:lines() do
-            local v = line:match("^INTERFACE_NAME=(.+)$")
-            if v then f:close(); return v:gsub('"', ''):gsub("'", "") end
-        end
-        f:close()
-    end
-    return "wlp2s0"
-end
+package.path = ENIGMA_DIR .. "/scripts/?.lua;" .. package.path
+local env = require("env")
 
 conky.config = {
     update_interval = 1,
@@ -46,7 +37,7 @@ conky.config = {
     color2        = '2D9EEA',
 
     -- Network interface (wifi); wired detection uses ${wireless_essid}
-    template1 = read_env_iface(),
+    template1 = env.get("INTERFACE_NAME", "wlp2s0"),
 
     -- Lua: draw graph first (pre), then conky text renders on top
     lua_load           = ENIGMA_DIR .. '/settings.lua ' .. ENIGMA_DIR .. '/scripts/loadall.lua',

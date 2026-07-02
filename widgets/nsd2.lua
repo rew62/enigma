@@ -14,24 +14,14 @@ package.path = _dir .. "?.lua;"
     .. ENIGMA_DIR .. "/widgets/?.lua;"
     .. package.path
 
-local function read_env(key, fallback)
-    local f = io.open(ENIGMA_DIR .. "/.env", "r")
-    if f then
-        for line in f:lines() do
-            local v = line:match("^" .. key .. "=(.+)$")
-            if v then f:close(); return v:gsub('"', ''):gsub("'", "") end
-        end
-        f:close()
-    end
-    return fallback
-end
+local env = require("env")
 
 -- ── State ─────────────────────────────────────────────────────────────────────
 
 local VIEW_ORDER = { "net", "sys", "disk" }
 local view_idx   = 1
-local DISK_DEV   = read_env("DISK_DEV", "nvme0n1")
-local NET_IFACE  = read_env("INTERFACE_NAME", "wlp2s0")
+local DISK_DEV   = env.get("DISK_DEV", "nvme0n1")
+local NET_IFACE  = env.get("INTERFACE_NAME", "wlp2s0")
 
 -- ── Module loading ────────────────────────────────────────────────────────────
 

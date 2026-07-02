@@ -9,7 +9,6 @@ local SCRIPT_DIR = debug.getinfo(1,'S').source:match("@?(.*/)" ) or "./"
 local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma"
 package.path = SCRIPT_DIR .. "?.lua;" .. SCRIPT_DIR .. "../scripts/?.lua;" .. package.path
     .. ";" .. ENIGMA_DIR .. "/scripts/?.lua"
-local ENV_FILE = ENIGMA_DIR .. "/.env"
 
 -- standalone load: bypasses settings.lua/loadall.lua/draw_bg.lua pipeline, so
 -- the shared try_require isn't available globally here.
@@ -39,15 +38,9 @@ local C = {
 }
 
 -- ── .env loader ───────────────────────────────────────────────────────────
-local function load_env(path)
-    local f = io.open(path,"r"); if not f then return false end
-    for line in f:lines() do
-        local v = line:match("^[Ll][Aa][Tt]=(.+)$"); if v then C.lat=tonumber(v) end
-        v       = line:match("^[Ll][Oo][Nn]=(.+)$"); if v then C.lon=tonumber(v) end
-    end
-    f:close(); return true
-end
-load_env(ENV_FILE)
+local env = try_require("env")
+C.lat = tonumber(env.get("LAT")) or C.lat
+C.lon = tonumber(env.get("LON")) or C.lon
 
 -- ── Timezone offset (decimal hours from UTC) ──────────────────────────────
 local function tz_offset()

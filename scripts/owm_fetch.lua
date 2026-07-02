@@ -15,29 +15,15 @@ package.path = package.path .. ";./?.lua;../?.lua;" .. ENIGMA_DIR .. "/scripts/?
 ------------------------------------------------------------------------
 -- Config from .env
 ------------------------------------------------------------------------
-local _env = {}
-do
-    local ef = io.open(ENIGMA_DIR .. "/.env", "r")
-    if ef then
-        for line in ef:lines() do
-            local stripped = line:match("^([^#]*)") or ""
-            local k, v = stripped:match("^%s*([%w_]+)%s*=%s*([^%s]+)%s*$")
-            if k and v then
-                v = v:match('^"(.*)"$') or v:match("^'(.*)'$") or v
-                _env[k] = v
-            end
-        end
-        ef:close()
-    end
-end
+local env = require("env")
 
-local OWM_API_KEY = _env.OWM_API_KEY or _env.owm_api_key or ""
-local LAT         = _env.LAT         or _env.lat         or "40.7128"
-local LON         = _env.LON         or _env.lon         or "-74.0060"
-local UNITS       = _env.UNITS       or _env.units       or "imperial"
-local LANG        = _env.LANG        or "en"
-local CACHE_TTL   = tonumber(_env.CACHE_TTL) or 300
-local ICON_SOURCE = _env.ICON_SOURCE or "cdn"
+local OWM_API_KEY = env.get("OWM_API_KEY", "")
+local LAT         = env.get("LAT", "40.7128")
+local LON         = env.get("LON", "-74.0060")
+local UNITS       = env.get("UNITS", "imperial")
+local LANG        = env.get("LANG", "en")
+local CACHE_TTL   = tonumber(env.get("CACHE_TTL")) or 300
+local ICON_SOURCE = env.get("ICON_SOURCE", "cdn")
 
 local CACHE_DIR  = "/dev/shm/conky"
 local CACHE_JSON = CACHE_DIR .. "/owm_current.json"

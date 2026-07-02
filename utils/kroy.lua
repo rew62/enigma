@@ -38,16 +38,9 @@ local DW = 1400
 local DH = 800
 
 -- ── User config ───────────────────────────────────────────────────────────────
-local function _read_env_iface()
-    local f = io.open(ENIGMA_DIR .. "/.env", "r")
-    if f then
-        for line in f:lines() do
-            local v = line:match("^INTERFACE_NAME=(.+)$")
-            if v then f:close(); return v:gsub('"',''):gsub("'","") end
-        end
-        f:close()
-    end
-    -- no .env: fall back to the default-route interface, not a guessed name
+local env = require("env")
+-- no .env value: fall back to the default-route interface, not a guessed name
+local function _default_iface()
     local p = io.popen("ip route show default 2>/dev/null | awk '{print $5; exit}'")
     if p then
         local dev = p:read("*l")
@@ -56,7 +49,7 @@ local function _read_env_iface()
     end
     return "eth0"
 end
-local NET_IFACE   = _read_env_iface()
+local NET_IFACE   = env.get("INTERFACE_NAME") or _default_iface()
 
 -- ── CPU temp sensor ───────────────────────────────────────────────────────────
 -- hwmon indexes are assigned in module-load order, so "hwmon 0" lands on a
