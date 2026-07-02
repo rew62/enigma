@@ -72,6 +72,7 @@ This will:
   * `ICON_SOURCE` — `cdn` or `local` weather icons
   * `CACHE_TTL` — Weather cache lifetime in seconds (default: 300)
   * `INTERFACE_NAME` — Network interface (auto-detected)
+  * `DISK_DEV` — Disk device for I/O graphs (auto-detected)
 * Optionally auto-detect your latitude/longitude via GeoClue (if available) or IP geolocation, pre-filling the `LAT`/`LON` defaults
 * Install all bundled fonts from `fonts/` and run a font availability check
 * Install the earth viewer cron job (runs at boot and every 10 minutes)
@@ -202,6 +203,7 @@ A few widgets layer extra click behavior on top of that baseline:
 | Widget | Combination | Action |
 |---|---|---|
 | `disk.rc` | `Shift` + Left-click | Toggle disk I/O graph on/off |
+| `eq.rc` | Left-click / Right-click | Next / previous spectrum preset |
 | `indices2.rc` | Left-click | Toggle expanded symbol view |
 | `nsd.lua` | `Shift` + Left-click | Cycle views: net → sys → disk |
 | `nsd.lua` | `Shift` + Right-click | Toggle combo summary (all three, no graphs) |
@@ -347,9 +349,37 @@ cd music2
 
 ---
 
-## Theming
+## Configuration & Theming
 
-Global appearance (colors, fonts, background alpha) is controlled via `settings.lua`, which also holds per-widget tunables in its `WIDGET_CONFIG` table (dividers, click-toggle defaults, fixed sizes). Widget-specific colors and layout constants live at the top of each widget's own Lua file.
+Everything is plain text -- no generated or binary config. Four layers, from broadest to most specific:
+
+**1. `.env` — machine & location.** Created by `./enigma-config.sh`, hand-editable afterward (keep values unquoted). Keys are listed in [Getting Started](#getting-started); `.env-example` is the format reference. One optional key the wizard doesn't prompt for: `NWS_STATION` forces a specific NWS observation station (e.g. `NWS_STATION=KIAD`) instead of the nearest one.
+
+**2. `settings.lua` — theme & per-widget wiring.** The `theme` table at the top sets global colors, fonts, background alpha, and divider style. The `WIDGET_CONFIG` table below it holds per-widget values keyed by rc basename: `divider` edge rules (`"top"`, `"bottom"`, `"top,bottom"`), fixed `target_width`/`target_height`, and `globals` such as `WINDOW_MOUSE_HOOK = false` (disables click-to-move/kill for that widget).
+
+**3. Feature files** — each commented inline:
+
+| File | Configures |
+|---|---|
+| `scripts/rss_feeds.conf` | RSS feed list |
+| `widgets/stock-symbols.conf` | Ticker/indices stock symbol list |
+| `music2/eq-settings.ini` | EQ: config-name label, startup output, live-edit mode |
+| `music2/spectrum-configs/` | EQ spectrum presets -- click the widget to cycle them; edit or add your own (`live_edit="on"` reloads the active preset as you save) |
+| `music2/cava-config` | cava engine: bar count, framerate, noise reduction |
+| `music2/show-lyric.ini` | Lyrics timing offsets (`timing`, `stream_timing`) and line colors |
+
+**4. Inline constants** — widget-specific knobs sit in a commented block at the top of each widget's file. The ones worth knowing about:
+
+| Widget | File | Knobs |
+|---|---|---|
+| Multi-month calendar | `scripts/multimon.sh` | `NUM_MONTHS`, `START_MONTH` (offset from current month), `START_DOW` (week start), `FONT_SIZE`, colors |
+| Killroy | `utils/kroy.lua` | `NET_MAX_KBS` (speed that fills all fingers), `LOAD_CEIL` (load that pegs the nose droop), line color |
+| Spectrum EQ | `music2/eq.rc` | `update_interval` (bar smoothness vs CPU, `.01`–`.2`) |
+| Day/night map | `widgets/worldmap.lua` | map colors (`BG`/`DAY`/`NIGHT`), `SUN_CENTERED` |
+| Stock indices | `widgets/indices2.lua` | `YAHOO_SYMBOLS` index list |
+| Solar dial | `widgets/solar_dial2.lua` | face geometry and font in the `C` table |
+
+Widget positions aren't edited by hand: `Alt`+drag the window where you want it, then `Ctrl`+Left-click to write the position back into its `.rc`.
 
 ---
 
