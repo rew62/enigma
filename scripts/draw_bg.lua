@@ -5,19 +5,35 @@
 -- draw_bg(w, h)         → custom size background
 -- draw_dividers(cr,w,h) → top/bottom hairlines per divider global
 -- try_require(mod)      → pcall-wrapped require; prints error and exits on failure
--- log_window_size()     → one-time "[name] window: W x H" line once the window is up
+-- log_window_size()     → one-time "[name] window: W x H" line once the window is up,
+--                         plus publishes the window height to HEIGHTS_DIR whenever it
+--                         changes, keyed by rc basename (etmux COLUMN stacking reads it)
 -- v1 2026-07-04 @rew62
 if not conky then require 'cairo' end
 
+local HEIGHTS_DIR = "/dev/shm/enigma/heights"
+
 local _size_logged = false
+local _pub_height
 function log_window_size()
-    if _size_logged or conky_window == nil then return end
+    if conky_window == nil then return end
     if conky_window.width == 0 or conky_window.height == 0 then return end
     local name = conky_script_name
         or (conky_config and conky_config:match("([^/]+)$"))
         or "conky"
-    print(string.format("[%s] window: %d x %d", name, conky_window.width, conky_window.height))
-    _size_logged = true
+    if not _size_logged then
+        print(string.format("[%s] window: %d x %d", name, conky_window.width, conky_window.height))
+        _size_logged = true
+    end
+    if conky_window.height ~= _pub_height then
+        os.execute("mkdir -p " .. HEIGHTS_DIR)
+        local f = io.open(HEIGHTS_DIR .. "/" .. name, "w")
+        if f then
+            f:write(conky_window.height, "\n")
+            f:close()
+            _pub_height = conky_window.height
+        end
+    end
 end
 
 function try_require(mod)

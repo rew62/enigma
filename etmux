@@ -60,6 +60,133 @@ declare -A NAMED_GROUPS
 NAMED_GROUPS[default]="c e ec ed em en es ev g m si wf wt zen"
 NAMED_GROUPS[stack1]="a sd st r t zkr"
 
+# --- COLUMN groups: auto-stacked vertical columns ---
+# Any group whose name starts with "column" is launched as a vertical stack:
+# each widget gets -x/-y overrides so it sits COLUMN_GAP px below the one
+# above it, using measured heights. Everything else launches at native rc
+# coordinates. Widget order in the group = top-to-bottom screen order.
+NAMED_GROUPS[column1]="ec em wt wf c ecg"
+NAMED_GROUPS[column2]="wt wf es ed en"
+
+COLUMN_GAP=5                          # px between stacked widgets
+HEIGHTS_DIR=/dev/shm/enigma/heights   # live heights published by draw_bg.lua
+
+# Per-column offsets of the widget WINDOW edge: X from the right screen edge,
+# Y from the top (the per-widget border_inner_margin correction is applied
+# automatically — conky's gap_x/gap_y anchor the content box, not the window).
+declare -A COLUMN_X COLUMN_Y
+COLUMN_X[column1]=5    COLUMN_Y[column1]=50
+COLUMN_X[column2]=170  COLUMN_Y[column2]=50
+
+# Measured window heights (px, includes border_inner_margin), used when no
+# live measurement exists in HEIGHTS_DIR yet. Measured 2026-07-03.
+declare -A HEIGHT
+HEIGHT[c]=121     # multimon @ NUM_MONTHS=1; recomputed from multimon.sh at launch
+HEIGHT[ec]=149
+HEIGHT[ecg]=284
+HEIGHT[ed]=137
+HEIGHT[eg]=158
+HEIGHT[em]=98
+HEIGHT[en]=146
+HEIGHT[es]=137
+HEIGHT[ev]=115
+HEIGHT[g]=654     # gcal window is fixed (minimum_height 650); only its bg varies
+HEIGHT[si]=115
+HEIGHT[st]=164
+HEIGHT[wf]=100
+HEIGHT[wt]=59
+
+# Resolve a code's rc file to an absolute path (same rules as the launch loop)
+resolve_rc_path() {
+    local entry="${MAP[$1]}" dir
+    [ -z "$entry" ] && return 1
+    dir="${entry%%|*}"
+    [[ "$dir" = ~* ]] && dir="${dir/#\~/$HOME}"
+    [[ "$dir" != /* ]] && dir="$BASE_DIR/$dir"
+    echo "$dir/${entry##*|}"
+}
+
+# multimon's height depends on scripts/multimon.sh's NUM_MONTHS, so compute it
+# from the script's actual output instead of trusting a stale measurement.
+# Calibrated 2026-07-03 for font mono:size=9: 15 px/line (blanks included) +
+# MONTH_GAP per month title + 12 px fixed (rc voffsets + border margins).
+multimon_height() {
+    local sh="$BASE_DIR/scripts/multimon.sh" n gap lines
+    [ -f "$sh" ] || return 1
+    n=$(grep -oP '^NUM_MONTHS=\K[0-9]+' "$sh")
+    gap=$(grep -oP '^MONTH_GAP=\K[0-9]+' "$sh")
+    lines=$(bash "$sh" 2>/dev/null | wc -l)
+    [ -n "$n" ] && [ -n "$gap" ] && [ "$lines" -gt 0 ] || return 1
+    echo $(( 12 + gap * n + 15 * lines ))
+}
+
+# Height for a code: computed (multimon) → live tmpfs measurement → static map
+widget_height() {
+    local code="$1" rc="$2" h
+    if [ "$rc" = "multimon.rc" ]; then
+        h=$(multimon_height) && { echo "$h"; return 0; }
+    fi
+    if [ -r "$HEIGHTS_DIR/$rc" ]; then
+        h=$(<"$HEIGHTS_DIR/$rc")
+        [[ "$h" =~ ^[0-9]+$ ]] && { echo "$h"; return 0; }
+    fi
+    [ -n "${HEIGHT[$code]}" ] && { echo "${HEIGHT[$code]}"; return 0; }
+    return 1
+}
+
+# Guard: only 154px-window top_right widgets stack (see the positioning
+# comment up top — both the 150+margin2 and 154+margin0 recipes qualify).
+# Echoes the widget's border_inner_margin; fails for anything else (arc,
+# solar_dial, ...), which then launches at its native coordinates.
+column_margin() {
+    local rc_path="$1" mw m align
+    mw=$(grep -oP "^\s*minimum_width\s*=\s*\K[0-9]+" "$rc_path" | tail -1)
+    m=$(grep -oP "^\s*border_inner_margin\s*=\s*\K[0-9]+" "$rc_path" | tail -1)
+    align=$(grep -oP "^\s*alignment\s*=\s*['\"]\K[a-z_]+" "$rc_path" | tail -1)
+    [ -z "$m" ] && m=0
+    [ "$align" = "top_right" ] || return 1
+    [ -n "$mw" ] && (( mw + 2*m == 154 )) || return 1
+    echo "$m"
+}
+
+# Compute -x/-y for every stackable widget of a column group. Guard-failed or
+# height-unknown widgets are skipped: they launch at native coordinates and
+# don't reserve a slot. Already-running widgets keep their slot reserved, so
+# re-running a column only fills in the missing widgets at the right offsets.
+declare -A POS_X POS_Y
+stack_column() {
+    local col="$1"; shift
+    local x="${COLUMN_X[$col]:-5}" y="${COLUMN_Y[$col]:-50}"
+    local code rc_path rc m h
+    for code in "$@"; do
+        rc_path=$(resolve_rc_path "$code") || { echo "$col: unknown code '$code'"; continue; }
+        rc="${rc_path##*/}"
+        [ -f "$rc_path" ] || continue
+        if ! m=$(column_margin "$rc_path"); then
+            echo "$col: $code ($rc) is not a 154px top_right widget — native position"
+            continue
+        fi
+        if ! h=$(widget_height "$code" "$rc"); then
+            echo "$col: no height known for $code ($rc) — native position"
+            continue
+        fi
+        POS_X[$code]=$(( x + m ))
+        POS_Y[$code]=$(( y + m ))
+        y=$(( y + h + COLUMN_GAP ))
+    done
+
+    # Warn if the stack runs off the bottom of the display (widgets still
+    # launch — the user decides whether to shorten the column)
+    local bottom=$(( y - COLUMN_GAP ))
+    if command -v xdotool > /dev/null 2>&1; then
+        local disp_h
+        disp_h=$(xdotool getdisplaygeometry 2>/dev/null | awk '{print $2}')
+        if [[ "$disp_h" =~ ^[0-9]+$ ]] && (( bottom > disp_h )); then
+            echo "$col: stack bottom (${bottom}px) exceeds display height (${disp_h}px) — trailing widgets will be off-screen"
+        fi
+    fi
+}
+
 # --- Help ---
 show_help() {
     echo "Usage: $(basename "$0") [codes...]"
@@ -96,9 +223,13 @@ show_help() {
     echo "    x-au-s      Aurora System"
     echo ""
     echo "  Groups:"
-    for g in default stack1; do
+    for g in default stack1 column1 column2; do
         printf "    %-12s %s\n" "$g" "${NAMED_GROUPS[$g]}"
     done
+    echo ""
+    echo "  column* groups auto-stack top-to-bottom with -x/-y overrides"
+    echo "  (measured heights + ${COLUMN_GAP}px gap); other groups/codes launch at"
+    echo "  native rc coordinates."
     echo ""
     echo "  Example: $(basename "$0") t wc wf a"
     echo ""
@@ -229,6 +360,7 @@ for arg in "$@"; do
     elif [[ -n "${NAMED_GROUPS[$arg]}" ]]; then
         read -ra gcodes <<< "${NAMED_GROUPS[$arg]}"
         expanded+=("${gcodes[@]}")
+        [[ "${arg,,}" == column* ]] && stack_column "$arg" "${gcodes[@]}"
     else
         expanded+=("$arg")
     fi
@@ -313,6 +445,12 @@ for code in "${FILTERED[@]}"; do
     # widgets rely on); no-op on a real X11 session.
     # cmd="env WAYLAND_DISPLAY= XDG_SESSION_TYPE=x11 conky -c $rc"
     cmd="conky -c $rc"
+
+    # COLUMN group member: override position (keep flags after "-c $rc" so
+    # the pgrep already-running pattern above still matches)
+    if [ -n "${POS_X[$code]}" ]; then
+        cmd="conky -c $rc -x ${POS_X[$code]} -y ${POS_Y[$code]}"
+    fi
 
     # --- New window every N panes ---
     if (( pane % PANES_PER_WINDOW == 0 )); then
