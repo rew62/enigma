@@ -153,6 +153,8 @@ With no arguments it launches the `default` group. Use `etmux help` to list all 
 |---|---|
 | `default` | `c e ec ed em en es ev g m si wf wt zen` |
 | `stack1` | `a sd st r t zkr` |
+| `column1` | `ec em wt wf c ecg ev e` (auto-stacked, see below) |
+| `column2` | `m si g` (auto-stacked, see below) |
 
 **Widget Codes:**
 
@@ -185,6 +187,38 @@ With no arguments it launches the `default` group. Use `etmux help` to list all 
 | `zkr` | `utils/kroy.lua` | Killroy Was Here |
 
 `etmux` also has shortcuts into the sibling `auzia-conky` and `conky-aurora` repos (`auzia`, `x-au-m`, `x-au-s`) -- see [Related Projects](#related-projects).
+
+#### etmux — Auto-Stacked Columns
+
+Any named group whose name starts with `column` launches as a vertical stack:
+each widget is placed 5&nbsp;px below the one above it via `-x`/`-y` overrides,
+using its real window height. The rc files are never modified — launched any
+other way, every widget keeps its native coordinates.
+
+```bash
+./etmux column1
+```
+
+* **Order matters** — the group's code order is the top-to-bottom screen order.
+* **Per-column position** — `COLUMN_X`/`COLUMN_Y` in `etmux` set where the
+  column's window edge sits (X measured from the right screen edge, since the
+  widgets are `top_right`-aligned). Each widget's `border_inner_margin` offset
+  is corrected automatically.
+* **Heights** come from, in order: a live computation for `multimon.rc` (so
+  changing `NUM_MONTHS` in `scripts/multimon.sh` restacks correctly on the
+  next launch), the last measured height published to
+  `/dev/shm/enigma/heights/` by the running widgets, and finally a static
+  fallback map in `etmux`.
+* **Only column-width `top_right` widgets stack** (150–164 px window, which
+  covers the 154 px family plus earth/nowplaying — right edges align since the
+  column is right-anchored). Anything else in a column group (`a`, `sd`, ...)
+  prints a notice and launches at its native position without reserving a slot.
+* **Self-healing** — widgets that are already running are skipped but keep
+  their slot, so re-running a column group only fills in the missing widgets
+  at the right offsets. After changing a widget's height (months, symbols,
+  ...), do a full `./etmux quit` and relaunch so everything below it moves.
+* If a stack is taller than the display, `etmux` warns that the trailing
+  widgets will be off-screen (it still launches them).
 
 ---
 

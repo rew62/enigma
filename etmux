@@ -65,15 +65,15 @@ NAMED_GROUPS[stack1]="a sd st r t zkr"
 # each widget gets -x/-y overrides so it sits COLUMN_GAP px below the one
 # above it, using measured heights. Everything else launches at native rc
 # coordinates. Widget order in the group = top-to-bottom screen order.
-NAMED_GROUPS[column1]="ec em wt wf c ecg"
-NAMED_GROUPS[column2]="wt wf es ed en"
+NAMED_GROUPS[column1]="ec em wt wf c ecg ev e"
+NAMED_GROUPS[column2]="m si g"
 
 COLUMN_GAP=5                          # px between stacked widgets
 HEIGHTS_DIR=/dev/shm/enigma/heights   # live heights published by draw_bg.lua
 
 # Per-column offsets of the widget WINDOW edge: X from the right screen edge,
-# Y from the top (the per-widget border_inner_margin correction is applied
-# automatically — conky's gap_x/gap_y anchor the content box, not the window).
+# Y from the top (each widget's border offset is corrected automatically —
+# conky's gap_x/gap_y anchor the content box, not the window edge).
 declare -A COLUMN_X COLUMN_Y
 COLUMN_X[column1]=5    COLUMN_Y[column1]=50
 COLUMN_X[column2]=170  COLUMN_Y[column2]=50
@@ -82,6 +82,7 @@ COLUMN_X[column2]=170  COLUMN_Y[column2]=50
 # live measurement exists in HEIGHTS_DIR yet. Measured 2026-07-03.
 declare -A HEIGHT
 HEIGHT[c]=121     # multimon @ NUM_MONTHS=1; recomputed from multimon.sh at launch
+HEIGHT[e]=160
 HEIGHT[ec]=149
 HEIGHT[ecg]=284
 HEIGHT[ed]=137
@@ -91,6 +92,7 @@ HEIGHT[en]=146
 HEIGHT[es]=137
 HEIGHT[ev]=115
 HEIGHT[g]=654     # gcal window is fixed (minimum_height 650); only its bg varies
+HEIGHT[m]=302
 HEIGHT[si]=115
 HEIGHT[st]=164
 HEIGHT[wf]=100
@@ -134,19 +136,25 @@ widget_height() {
     return 1
 }
 
-# Guard: only 154px-window top_right widgets stack (see the positioning
-# comment up top — both the 150+margin2 and 154+margin0 recipes qualify).
-# Echoes the widget's border_inner_margin; fails for anything else (arc,
-# solar_dial, ...), which then launches at its native coordinates.
-column_margin() {
-    local rc_path="$1" mw m align
+# Guard: only column-width top_right widgets stack. Window width is
+# minimum_width plus borders on both sides (border_inner_margin +
+# border_outer_margin + border_width, conky defaults 3/1/1 when unset) and
+# must land in 150..164 — the 154px family plus the slightly wider earth
+# (160) and nowplaying (162), whose right edges still align since the column
+# is right-anchored. Rejects arc, solar_dial, ...; those launch at native
+# coordinates. Echoes the widget's total border offset, i.e. how far the
+# window edge sits outside the gap_x/gap_y content anchor.
+column_offset() {
+    local rc_path="$1" mw inner outer bw align off
     mw=$(grep -oP "^\s*minimum_width\s*=\s*\K[0-9]+" "$rc_path" | tail -1)
-    m=$(grep -oP "^\s*border_inner_margin\s*=\s*\K[0-9]+" "$rc_path" | tail -1)
+    inner=$(grep -oP "^\s*border_inner_margin\s*=\s*\K[0-9]+" "$rc_path" | tail -1)
+    outer=$(grep -oP "^\s*border_outer_margin\s*=\s*\K[0-9]+" "$rc_path" | tail -1)
+    bw=$(grep -oP "^\s*border_width\s*=\s*\K[0-9]+" "$rc_path" | tail -1)
     align=$(grep -oP "^\s*alignment\s*=\s*['\"]\K[a-z_]+" "$rc_path" | tail -1)
-    [ -z "$m" ] && m=0
+    off=$(( ${inner:-3} + ${outer:-1} + ${bw:-1} ))
     [ "$align" = "top_right" ] || return 1
-    [ -n "$mw" ] && (( mw + 2*m == 154 )) || return 1
-    echo "$m"
+    [ -n "$mw" ] && (( mw + 2*off >= 150 && mw + 2*off <= 164 )) || return 1
+    echo "$off"
 }
 
 # Compute -x/-y for every stackable widget of a column group. Guard-failed or
@@ -162,8 +170,8 @@ stack_column() {
         rc_path=$(resolve_rc_path "$code") || { echo "$col: unknown code '$code'"; continue; }
         rc="${rc_path##*/}"
         [ -f "$rc_path" ] || continue
-        if ! m=$(column_margin "$rc_path"); then
-            echo "$col: $code ($rc) is not a 154px top_right widget — native position"
+        if ! m=$(column_offset "$rc_path"); then
+            echo "$col: $code ($rc) is not a column-width top_right widget — native position"
             continue
         fi
         if ! h=$(widget_height "$code" "$rc"); then
