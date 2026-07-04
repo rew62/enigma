@@ -223,17 +223,57 @@ echo
 # ── Dependencies ─────────────────────────────────────────────────────────
 read -p "Install/verify dependencies via apt? (yes/no): " INSTALL_DEPS
 if [[ "$INSTALL_DEPS" =~ ^[Yy][Ee]?[Ss]?$ ]]; then
-    APT_PACKAGES=(conky-all tmux curl xdotool vnstat jq python3-ephem \
-        playerctl librsvg2-bin imagemagick luarocks gcalcli git \
-        fonts-ibm-plex pulseaudio-utils)
-    if command -v fzf &>/dev/null; then
-        echo "fzf already found at $(command -v fzf) ($(fzf --version)); skipping apt package to avoid shadowing it."
-    else
-        APT_PACKAGES+=(fzf)
-    fi
+    # Library/font packages with no CLI to probe; apt handles these safely.
+    APT_PACKAGES=(python3-ephem fonts-ibm-plex)
+    # Package → command it provides. If the command already exists (apt,
+    # curl, pip, or source install), skip the apt package rather than
+    # shadow or duplicate the user's copy.
+    declare -A PKG_CMDS=(
+        [conky-all]=conky [tmux]=tmux [curl]=curl [xdotool]=xdotool
+        [vnstat]=vnstat [jq]=jq [playerctl]=playerctl
+        [librsvg2-bin]=rsvg-convert [imagemagick]=convert
+        [luarocks]=luarocks [gcalcli]=gcalcli [git]=git
+        [pulseaudio-utils]=pactl [fzf]=fzf
+    )
+    for pkg in conky-all tmux curl xdotool vnstat jq playerctl \
+        librsvg2-bin imagemagick luarocks gcalcli git pulseaudio-utils fzf; do
+        cmd=${PKG_CMDS[$pkg]}
+        if command -v "$cmd" &>/dev/null; then
+            echo "  skipping $pkg: '$cmd' already at $(command -v "$cmd")"
+        else
+            APT_PACKAGES+=("$pkg")
+        fi
+    done
     sudo apt install -y "${APT_PACKAGES[@]}"
     echo
 fi
+
+# ── Conky capability check ────────────────────────────────────────────────
+# The widgets need conky built with Lua Cairo bindings, mouse events,
+# ARGB visuals, own_window and Xft; XDBE avoids flicker (double_buffer).
+# A self-compiled conky may lack these even though the binary exists.
+check_conky_features() {
+    if ! command -v conky &>/dev/null; then
+        echo -e "${YELLOW}⚠ conky not found on PATH. Install it (e.g. 'sudo apt install conky-all') before starting the suite.${NC}"
+        return
+    fi
+    local info missing=() feat
+    info=$(conky -v 2>/dev/null)
+    for feat in "Cairo" "Mouse events" "ARGB visual" "Own window" "Xft"; do
+        grep -qi "$feat" <<< "$info" || missing+=("$feat")
+    done
+    if [ ${#missing[@]} -eq 0 ]; then
+        echo -e "${GREEN}✓ conky at $(command -v conky) has all required build features${NC}"
+    else
+        echo -e "${YELLOW}⚠ conky at $(command -v conky) is missing required build features: ${missing[*]}${NC}"
+        echo -e "${YELLOW}  The suite will not work with this build. On Ubuntu/Mint, 'sudo apt install conky-all' provides a full build.${NC}"
+    fi
+    if ! grep -qi "XDBE" <<< "$info"; then
+        echo -e "${YELLOW}⚠ conky built without XDBE (double buffering): widgets will run but may flicker.${NC}"
+    fi
+}
+check_conky_features
+echo
 
 # ── Load and display existing .env if present ────────────────────────────
 OWM_API_KEY=""; CITY_ID=""; UNITS=""; LAT=""; LON=""; INTERFACE_NAME=""
