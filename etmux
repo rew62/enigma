@@ -244,6 +244,7 @@ show_help() {
     echo "  goto [code]   jump straight to the pane running that widget"
     echo "                (no code: fzf picker over all running panes)"
     echo "  list          list all running panes (session:window.pane, command, title)"
+    echo "  repack        compact panes into the fewest windows ($PANES_PER_WINDOW per window)"
     echo "  quit          kill the entire conky tmux session (or: stop)"
 }
 
@@ -325,6 +326,38 @@ cmd_goto() {
     goto_pane "$target"
 }
 
+cmd_repack() {
+    tmux has-session -t "$SESSION" 2>/dev/null || { echo "No session named $SESSION"; return 1; }
+
+    # Close index gaps left by dead windows (the start/append logic below
+    # assumes windows run contiguously from 0).
+    tmux move-window -r -t "$SESSION"
+
+    # Drain the highest window into the lowest window with a free slot.
+    # Source and target are never the same window, and only the top
+    # window can empty and die, so no new index gaps appear mid-run.
+    local lo hi pane i
+    while :; do
+        lo=$(tmux list-windows -t "$SESSION" -F '#{window_index} #{window_panes}' \
+             | awk -v n="$PANES_PER_WINDOW" '$2 < n {print $1; exit}')
+        hi=$(tmux list-windows -t "$SESSION" -F '#{window_index}' | tail -1)
+        if [ -z "$lo" ] || [ "$lo" -eq "$hi" ]; then
+            break   # every window below the top one is full — packed
+        fi
+        pane=$(tmux list-panes -t "$SESSION:$hi" -F '#{pane_id}' | head -1)
+        tmux join-pane -d -s "$pane" -t "$SESSION:$lo"
+        tmux select-layout -t "$SESSION:$lo" tiled
+    done
+
+    # Retile the (shrunken) top window too, and rename windows to match
+    # their new positions.
+    for i in $(tmux list-windows -t "$SESSION" -F '#{window_index}'); do
+        tmux select-layout -t "$SESSION:$i" tiled
+        tmux rename-window -t "$SESSION:$i" "Conky-$((i+1))"
+    done
+    echo "Repacked $(tmux list-panes -s -t "$SESSION" | wc -l) panes into $(tmux list-windows -t "$SESSION" | wc -l) windows."
+}
+
 # --- Input check ---
 if [ "$#" -eq 0 ]; then
     set -- "default"
@@ -344,6 +377,12 @@ fi
 # --- Goto: jump to the pane running a given widget (or fzf-pick one) ---
 if [[ "$1" == "goto" ]]; then
     cmd_goto "$2"
+    exit $?
+fi
+
+# --- Repack: compact panes into the fewest windows (PANES_PER_WINDOW each) ---
+if [[ "$1" == "repack" ]]; then
+    cmd_repack
     exit $?
 fi
 
