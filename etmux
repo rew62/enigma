@@ -245,7 +245,7 @@ show_help() {
     echo "                (no code: fzf picker over all running panes)"
     echo "  list          list all running panes (session:window.pane, command, title)"
     echo "  repack        compact panes into the fewest windows ($PANES_PER_WINDOW per window)"
-    echo "  quit          kill the entire conky tmux session (or: stop)"
+    echo "  quit          kill the conky tmux session + detached music2 widgets (or: stop)"
 }
 
 # --- Pane lookup (goto): map a running conky pane back to its rc file ---
@@ -269,7 +269,9 @@ build_pane_list() {
         conky_line=$(pgrep -P "$pid" -af conky 2>/dev/null | head -1)
         [ -z "$conky_line" ] && continue
         conky_pid=$(echo "$conky_line" | awk '{print $1}')
-        rc=$(echo "$conky_line" | awk '{print $NF}')
+        # rc is the argument after -c, not $NF: column widgets carry -x/-y
+        # position overrides after the rc filename
+        rc=$(echo "$conky_line" | awk '{for(i=1;i<NF;i++) if($i=="-c"){print $(i+1); exit}}')
         [[ "$rc" != /* ]] && { cwd=$(readlink /proc/"$conky_pid"/cwd 2>/dev/null); rc="$cwd/$rc"; }
         code=$(rc_to_code "$rc")
         printf "%-6s %-28s %s\n" "${code:-?}" "${rc##*/}" "$target"
@@ -371,6 +373,14 @@ fi
 # --- Quit ---
 if [[ "$1" == "quit" || "$1" == "stop" ]]; then
     tmux kill-session -t "$SESSION" && echo "Killed session: $SESSION" || echo "No session named $SESSION"
+    # music2 widgets toggled from nowplaying run detached via setsid (outside
+    # tmux), so the session kill misses them — sweep them too. pkill is silent
+    # when nothing matches; the bracketed first letter stops self-matching.
+    # cava-loop cleans up cava itself once eq.rc dies.
+    pkill -f "[e]q\.rc"
+    pkill -f "[s]tart-lyrics-conky\.sh"
+    pkill -f "[a]ctive-player\.sh"
+    pkill -f "[l]yrics\.rc"
     exit
 fi
 

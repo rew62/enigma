@@ -135,7 +135,7 @@ See `.env-example` for the format reference.
 | `etmux goto [code]` | Jump to the pane running that widget (no code: fzf picker) |
 | `etmux list` | List all running panes (`session:window.pane`, command, title) |
 | `etmux repack` | Compact panes into the fewest windows (4 per window) after widgets have been stopped/started |
-| `etmux quit` | Kill the whole conky tmux session (alias: `stop`) |
+| `etmux quit` | Kill the whole conky tmux session, plus any detached music2 widgets (eq/lyrics) started from Now Playing (alias: `stop`) |
 
 #### etmux — Selective Launch
 

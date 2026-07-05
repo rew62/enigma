@@ -22,8 +22,11 @@ parent_pid="$2"
 # Terminate all
 terminate() {
   echo -e "$(basename $0) : Cava engine terminated" > /dev/stdout
-  killall $(basename $0)
+  # cava must die before the self-killall: the monitor subshell is itself
+  # named cava-loop, so "killall cava-loop" takes this code down with it —
+  # anything ordered after it never runs
   killall cava
+  killall $(basename $0)
   # killall xdotool 2>/dev/null  # only needed if xdotool click listener is active
   exit 0
 }
