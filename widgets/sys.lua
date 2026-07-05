@@ -78,10 +78,18 @@ local function draw_header(cr, w)
         right2_lbl = "PWR"
         right2_val = get_stat("${battery_percent BAT0}") .. "%"
     else
-        local raw   = get_stat("${acpitemp}")
-        right2_lbl  = "TEMP"
-        right2_val  = raw .. "\xc2\xb0"
-        right2_temp = tonumber(raw)
+        local tz = io.open("/sys/class/thermal/thermal_zone0/temp", "r")
+        if tz then tz:close() end
+        right2_lbl = "TEMP"
+        if tz then
+            local raw   = get_stat("${acpitemp}")
+            right2_val  = raw .. "\xc2\xb0"
+            right2_temp = tonumber(raw)
+        else
+            -- no ACPI thermal zone (VMs): ${acpitemp} logs a conky error
+            -- every update; nil right2_temp keeps the neutral color below
+            right2_val = "--\xc2\xb0"
+        end
     end
 
     cairo_set_font_size(cr, 10)

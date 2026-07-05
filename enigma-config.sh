@@ -421,7 +421,10 @@ echo -e "${GREEN}✓ Saved $ENV_FILE (permissions: 600)${NC}"
 if crontab -l 2>/dev/null | grep -q "fourmilab-earth.sh"; then
     echo "  Crontab entries already installed, skipping."
 else
-    (crontab -l 2>/dev/null; cat <<EOF
+    # "|| true": with no existing crontab, crontab -l exits 1 and set -e
+    # would kill the subshell before cat runs — piping an EMPTY crontab to
+    # "crontab -", which installs nothing while still reporting success
+    (crontab -l 2>/dev/null || true; cat <<EOF
 @reboot sleep 15 && DISPLAY=:0 $SCRIPT_DIR/utils/fourmilab-earth.sh > /dev/shm/cron_debug.log 2>&1
 */10 * * * * $SCRIPT_DIR/utils/fourmilab-earth.sh > /dev/shm/cron_debug.log 2>&1
 EOF

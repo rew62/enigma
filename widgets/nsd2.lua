@@ -322,10 +322,18 @@ local function draw_combo(cr, w, h)
         r2_lbl = "PWR"
         r2_val = gs("${battery_percent BAT0}") .. "%"
     else
-        local raw = gs("${acpitemp}")
-        r2_lbl    = "Temp"
-        r2_val    = raw .. "\xc2\xb0"
-        r2_temp   = tonumber(raw)
+        local tz = io.open("/sys/class/thermal/thermal_zone0/temp", "r")
+        if tz then tz:close() end
+        r2_lbl = "Temp"
+        if tz then
+            local raw = gs("${acpitemp}")
+            r2_val  = raw .. "\xc2\xb0"
+            r2_temp = tonumber(raw)
+        else
+            -- no ACPI thermal zone (VMs): ${acpitemp} logs a conky error
+            -- every update; nil r2_temp keeps the neutral color below
+            r2_val = "--\xc2\xb0"
+        end
     end
 
     cairo_set_font_size(cr, 10)
