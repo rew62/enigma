@@ -39,7 +39,7 @@ conky.config = {
     default_shade_color = '#333333',
     default_outline_color = 'black',
 
-    update_interval = 0.2,
+    update_interval = 0.5,
     total_run_times = 0,
     double_buffer = true,
     no_buffers = true,
@@ -50,7 +50,7 @@ conky.config = {
     imlib_cache_size = 10000,
 
     -- Lua Scripts
-    lua_load = ENIGMA_DIR .. '/settings.lua ./nowplaying-settings.lua ./scripts/nowplaying-loadall.lua',
+    lua_load = ENIGMA_DIR .. '/settings.lua ./scripts/nowplaying-loadall.lua',
     lua_startup_hook   = 'vars',
     lua_draw_hook_pre  = 'conky_main',
     lua_mouse_hook     = 'mouse_hook',

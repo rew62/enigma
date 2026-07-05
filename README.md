@@ -257,7 +257,7 @@ A few widgets layer extra click behavior on top of that baseline:
 
 ## Music2 — Now Playing, EQ & Lyrics
 
-A self-contained subsystem in `music2/` with its own launcher (`music.sh`). Now Playing is also wired into `etmux` as code `m` (part of the `default` group); the eq and lyrics widgets are launched via `music.sh` or toggled from Now Playing. Three widgets share a common background panel but otherwise run independently:
+A self-contained subsystem in `music2/`. Now Playing is wired into `etmux` as code `m` (part of the `default` group); the eq widget has etmux code `eq`, and both eq and lyrics can be toggled from Now Playing with Shift+click. Three widgets share a common background panel but otherwise run independently:
 
 | Script | Widget |
 |---|---|
@@ -268,11 +268,12 @@ A self-contained subsystem in `music2/` with its own launcher (`music.sh`). Now 
 **Launch / stop:**
 
 ```bash
-cd music2
-./music.sh start      # launches all three
-./music.sh stop
-./music.sh restart
+etmux m               # Now Playing (also part of the default group)
+etmux eq              # spectrum equalizer
+cd music2 && ./start-lyrics-conky.sh   # lyrics + its active-player.sh daemon
 ```
+
+From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Right-click toggles eq (see mouse events below).
 
 **Mouse events (`nowplaying.rc` only):**
 
@@ -307,12 +308,8 @@ cd music2
 │   ├── get-lyrics.sh                         synced-lyrics fetcher (cache/NetEase/LRCLIB)
 │   ├── images/                               volume/mute icons
 │   ├── instrumental_lrclib.sh                instrumental-track detection (LRCLIB)
-│   ├── lyrics-settings.lua                   lyrics widget settings
 │   ├── lyrics.rc                             Synced lyrics display
-│   ├── music.sh                              Launch/stop/restart all three
-│   ├── nowplaying-settings.lua               nowplaying widget settings
 │   ├── nowplaying.rc                   [m]   Now Playing — album art, progress, volume
-│   ├── repair                                stop all MPRIS players (unstick helper)
 │   ├── scripts/                              shared Lua modules (nowplaying, volume, loadalls)
 │   ├── setup.sh                              Lyrics dependency check
 │   ├── show-lyric                            synced-lyric context-window renderer

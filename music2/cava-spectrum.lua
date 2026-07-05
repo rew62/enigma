@@ -1,11 +1,9 @@
--- v1 2026-07-04 @rew62
-
 --[[ BARGRAPH WIDGET
     Originally written by v2.0 by wlourf (12.07.2010)
     this widget draws a bargraph with differe,ts effects
     http://u-scripts.blogspot.com/2010/07/bargraph-widget.html
     Rewritten by Koentje and Bleys for use with cava as Spectrum Equalizer in conky (03.11.2023)
-    Edited by @rew62 to add mouse click events, print config name in lua
+    Edited 2026-07-04 by @rew62 to add mouse click events, print config name in lua
 
 Parameters are :
 3 parameters are mandatory

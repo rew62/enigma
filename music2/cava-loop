@@ -8,7 +8,6 @@
 #  Scripted by Koentje  (remon@cobrasoft.nl)       version 1.8  #           #
 #                                                               #
 #################################################################
-# v1 2026-07-04 @rew62
 
 if [ "$1" != "gocava" ]; then
    echo -e "\n\e[31mERROR:\e[m cava-loop can not start outside of conky!\n"

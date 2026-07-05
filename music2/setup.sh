@@ -133,7 +133,7 @@ echo ""
 
 # ── Summary ───────────────────────────────────────────────────────────────
 if [ "$MISSING" -eq 0 ]; then
-    echo -e "${GRN}All checks passed. Run music2/music.sh to start all music scripts or music2/start-lyrics-conky.sh to start lyrics only.${NC}"
+    echo -e "${GRN}All checks passed. Run 'etmux m' to start Now Playing (Shift+click toggles eq/lyrics) or music2/start-lyrics-conky.sh to start lyrics only.${NC}"
 else
     echo -e "${RED}Some checks failed. Fix the above before starting.${NC}"
     echo ""

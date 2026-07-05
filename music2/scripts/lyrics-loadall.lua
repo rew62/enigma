@@ -1,8 +1,8 @@
 -- scripts/lyrics-loadall.lua - Loads and calls Lua Modules
 -- v1 2026-07-04 @rew62
 
--- package.path is already set by lyrics-settings.lua (loaded first via
--- lua_load); don't reassign it here or it overwrites that extension.
+package.path = "./scripts/?.lua;" .. package.path
+    .. ";" .. (os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma") .. "/scripts/?.lua"
 
 local function try_require(modname)
     local ok, result = pcall(require, modname)

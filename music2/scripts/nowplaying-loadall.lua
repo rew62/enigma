@@ -2,8 +2,8 @@
 -- loads and calls: draw_bg (shared), nowplaying, volume
 -- v1 2026-07-04 @rew62
 
--- package.path is already set by nowplaying-settings.lua (loaded first via
--- lua_load); don't reassign it here or it overwrites that extension.
+package.path = "./scripts/?.lua;" .. package.path
+    .. ";" .. (os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma") .. "/scripts/?.lua"
 
 local function try_require(modname)
     local ok, result = pcall(require, modname)
@@ -46,9 +46,8 @@ function conky_main()
 end
 
 -- ── Shift+click: toggle sibling music2 scripts (lyrics / eq) ─────────────────
--- music2 is now flat, so eq.rc / start-lyrics-conky.sh are direct siblings of
--- nowplaying's own cwd (no more ../eq, ../lyrics nesting), mirroring
--- music2/music.sh's own start()/stop() commands.
+-- music2 is flat, so eq.rc / start-lyrics-conky.sh are direct siblings of
+-- nowplaying's own cwd (no more ../eq, ../lyrics nesting).
 
 -- the bracket around the first letter ("[l]yrics" etc.) keeps pgrep/pkill -f
 -- from matching their own invoking shell's command line, which otherwise

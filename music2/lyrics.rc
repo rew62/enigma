@@ -35,7 +35,7 @@ conky.config = {
 	imlib_cache_flush_interval = 60,
 	imlib_cache_size = 10000,
 	stippled_borders = 5,
-	lua_load = ENIGMA_DIR .. '/settings.lua ./lyrics-settings.lua scripts/lyrics-loadall.lua',
+	lua_load = ENIGMA_DIR .. '/settings.lua scripts/lyrics-loadall.lua',
 	lua_draw_hook_pre = 'main',
 	lua_startup_hook = 'vars',
 };
