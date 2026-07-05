@@ -83,6 +83,7 @@ local function draw_timestamp(cr)
     cairo_set_font_size(cr, 8)
 
     local te = cairo_text_extents_t:create()
+    tolua.takeownership(te)
     cairo_text_extents(cr, label, te)
 
     cairo_set_source_rgba(cr, 0.7, 0.7, 0.7, 0.85)

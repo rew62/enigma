@@ -42,8 +42,12 @@ fi
 
 # 2. Download and Process
 echo "[$NOW] Downloading and processing image..."
+# Download at 600px for render quality, key out the black background, then
+# scale once here to the widget's exact content size (enigma-earth.lua's
+# SIZE - 2*MARGIN = 146): the widget then blits 1:1 instead of decoding and
+# rescaling a 600x600 RGBA (1.4 MB) every frame.
 if wget --timeout="$WGET_TIMEOUT" --tries=2 -O - "$URL" | \
-   convert - -fuzz 10% -transparent black -strip "$TEMP_FILE"; then
+   convert - -fuzz 10% -transparent black -resize 146x146 -strip "$TEMP_FILE"; then
     if [ -s "$TEMP_FILE" ]; then
         mv "$TEMP_FILE" "$EARTH_IMG"
         # Save a backup copy to persistent storage
