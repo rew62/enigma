@@ -14,7 +14,7 @@
 -- During config parse the `conky` global exists; cairo bindings aren't
 -- registered yet so we skip the require.  lua_load re-runs this file
 -- with conky=nil, at which point cairo is available.
-if not conky then require 'cairo' end
+if not conky then require 'cairo'; pcall(require, 'cairo_xlib') end  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
 
 local _kroy_dir = debug.getinfo(1,'S').source:match("@?(.*/)" ) or "./"
 local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma"

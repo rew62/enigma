@@ -12,6 +12,7 @@ local window
 
 if not conky then
     require 'cairo'
+    pcall(require, 'cairo_xlib')  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
     window = require("window")  -- already try_require()'d by scripts/loadall.lua
 end
 

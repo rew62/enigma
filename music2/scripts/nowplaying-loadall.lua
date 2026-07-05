@@ -109,12 +109,15 @@ function conky_mouse_hook(event)
     local x, y = event.x, event.y
     if y < VOL_SECTION_Y then return false end
 
-    -- scroll anywhere in the volume section
-    if t == "scroll_up" then
-        os.execute("pactl set-sink-volume @DEFAULT_SINK@ +2% &")
-        return true
-    elseif t == "scroll_down" then
-        os.execute("pactl set-sink-volume @DEFAULT_SINK@ -2% &")
+    -- scroll anywhere in the volume section: conky reports the wheel as type
+    -- "mouse_scroll" with a direction field (scroll_up/scroll_down types
+    -- don't exist in any conky version)
+    if t == "mouse_scroll" then
+        if event.direction == "up" then
+            os.execute("pactl set-sink-volume @DEFAULT_SINK@ +2% &")
+        elseif event.direction == "down" then
+            os.execute("pactl set-sink-volume @DEFAULT_SINK@ -2% &")
+        end
         return true
     elseif t ~= "button_down" then
         return false

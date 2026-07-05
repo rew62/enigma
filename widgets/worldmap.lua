@@ -2,6 +2,7 @@
 -- v1 2026-07-04 @rew62
 
 require 'cairo'
+pcall(require, 'cairo_xlib')  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
 
 local SCRIPT_DIR = (debug.getinfo(1, 'S').source:match("@?(.*/)" ) or "./")
 local CACHE_DIR  = os.getenv("CONKY_CACHE_DIR") or "/dev/shm/conky"

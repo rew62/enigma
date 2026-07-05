@@ -3,7 +3,7 @@
 -- Event dots and sunrise/sunset time labels kept near original size for legibility.
 -- v1 2026-07-04 @rew62
 
-if not conky then require 'cairo' end
+if not conky then require 'cairo'; pcall(require, 'cairo_xlib') end  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
 
 local SCRIPT_DIR = debug.getinfo(1,'S').source:match("@?(.*/)" ) or "./"
 local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma"

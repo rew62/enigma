@@ -3,6 +3,7 @@
 -- v1 2026-07-04 @rew62
 
 require 'cairo'
+pcall(require, 'cairo_xlib')  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
 
 package.path = package.path .. ";./?.lua;../?.lua;"
     .. (os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma") .. "/scripts/?.lua"

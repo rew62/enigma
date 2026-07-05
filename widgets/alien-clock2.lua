@@ -6,7 +6,7 @@
 -- During config parse the `conky` global exists; cairo bindings aren't
 -- registered yet so we skip the require.  lua_load re-runs this file
 -- with conky=nil, at which point cairo is available.
-if not conky then require 'cairo' end
+if not conky then require 'cairo'; pcall(require, 'cairo_xlib') end  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
 
 -- ── Configurable colors ──────────────────────────────────────────────────────
 local ring_colour  = 0xD0B8E8   -- alien-dark purple (auzia colors.lua alien_dark.bg)

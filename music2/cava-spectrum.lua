@@ -64,6 +64,7 @@ v3.2 (07 jun 2026)   Rewrote script, uses way less cpu usage on reading cava dat
 
 
 require 'cairo'
+pcall(require, 'cairo_xlib')  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
 
 
 -- Scriptname

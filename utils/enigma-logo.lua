@@ -2,7 +2,7 @@
 -- (renamed from enigma8.lua; based on a bitmap trace of enigma.xcf)
 -- v1 2026-07-04 @rew62
 
-if not conky then require 'cairo' end
+if not conky then require 'cairo'; pcall(require, 'cairo_xlib') end  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
 
 local CHAR_GAP = 20   -- extra pixels of space inserted between each character
 local ROTATION = 90    -- degrees CCW; 90 → portrait (logo reads upward), matches enigma.lua
