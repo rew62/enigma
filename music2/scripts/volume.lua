@@ -17,15 +17,12 @@ local function exec_cmd(cmd)
     return r
 end
 
-local function get_volume_pct()
-    local raw = exec_cmd("pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null")
-    local pct = raw:match("(%d+)%%")
-    return tonumber(pct) or 0
-end
-
-local function get_mute()
-    local raw = exec_cmd("pactl get-sink-mute @DEFAULT_SINK@ 2>/dev/null")
-    return raw:match("yes") ~= nil
+-- both pactl queries in one popen; volume line arrives first, then "Mute: ..."
+local function get_volume_state()
+    local raw = exec_cmd("pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null; " ..
+                         "pactl get-sink-mute @DEFAULT_SINK@ 2>/dev/null")
+    local pct = tonumber(raw:match("(%d+)%%")) or 0
+    return pct, raw:match("Mute:%s*yes") ~= nil
 end
 
 local function write_text(cr, x, y, text, f)
@@ -137,8 +134,7 @@ end
 -- Layout: label+pct row, then a icon/bar/icon row (150px usable width,
 -- bar is narrower than the old 340px version so the icons fit at the edges)
 function draw_volume(cr, y_off)
-    local vol_pct = get_volume_pct()
-    local muted   = get_mute()
+    local vol_pct, muted = get_volume_state()
     local vol_str = string.format("%d%%", vol_pct)
 
     local win_w    = conky_window and conky_window.width or 154

@@ -21,12 +21,31 @@ local function exec_cmd(cmd)
     return r
 end
 
-local function get_position()
-    return tonumber(exec_cmd("playerctl position 2>/dev/null")) or 0
-end
+-- one popen fetches every playerctl field the widget needs per frame
+-- (status, metadata block, position, duration) instead of eight separate
+-- calls; \31 (ASCII unit separator) never appears in MPRIS tags.
+-- {{position}} is microseconds, unlike `playerctl position` (seconds).
+local PLAYER_QUERY = "playerctl metadata --format "
+    .. "'{{status}}\31{{xesam:artist}}\31{{xesam:album}}\31{{xesam:title}}"
+    .. "\31{{mpris:artUrl}}\31{{playerName}}\31{{position}}\31{{mpris:length}}' "
+    .. "2>/dev/null"
 
-local function get_duration()
-    return (tonumber(exec_cmd("playerctl metadata mpris:length 2>/dev/null")) or 0) / 1000000
+local function get_player_state()
+    local raw = exec_cmd(PLAYER_QUERY)
+    local f = {}
+    for field in (raw .. "\31"):gmatch("([^\31]*)\31") do
+        f[#f + 1] = field:gsub("%s+$", "")
+    end
+    return {
+        status   = (f[1] or ""):gsub("%s+", ""),
+        artist   = f[2] or "",
+        album    = f[3] or "",
+        title    = f[4] or "",
+        art_url  = f[5] or "",
+        player   = f[6] or "",
+        position = (tonumber(f[7]) or 0) / 1000000,
+        duration = (tonumber(f[8]) or 0) / 1000000,
+    }
 end
 
 local function fmt_time(s)
@@ -350,19 +369,19 @@ function draw_nowplaying(cr, y_off)
     local usable_w = win_w - 2 * margin    -- 150
     local center_x = margin + usable_w / 2 -- 77
 
-    local status = exec_cmd("playerctl status 2>/dev/null"):gsub("%s+", "")
-    if status ~= "Playing" then
+    local st = get_player_state()
+    if st.status ~= "Playing" then
         write_text(cr, center_x, y_off + 80, "Not Playing",
             {font="Droid Sans", size=14, align="c", color=0x888888, alpha=0.7})
         return
     end
 
-    -- Fetch metadata
-    local artist  = exec_cmd("playerctl metadata xesam:artist 2>/dev/null"):gsub("%s+$", "")
-    local album   = exec_cmd("playerctl metadata xesam:album  2>/dev/null"):gsub("%s+$", "")
-    local title   = exec_cmd("playerctl metadata xesam:title  2>/dev/null"):gsub("%s+$", "")
-    local art_url = exec_cmd("playerctl metadata mpris:artUrl 2>/dev/null"):gsub("%s+$", "")
-    local player  = exec_cmd("playerctl metadata --format '{{playerName}}' 2>/dev/null"):gsub("%s+$", "")
+    -- Metadata (all from the single get_player_state query)
+    local artist  = st.artist
+    local album   = st.album
+    local title   = st.title
+    local art_url = st.art_url
+    local player  = st.player
     local art     = image_path .. "tmp.png"
 
     -- detect TV stream: video player + known stream patterns
@@ -457,8 +476,8 @@ function draw_nowplaying(cr, y_off)
 
     -- Progress bar (track) or pulsing LIVE indicator (stream) — same band,
     -- so the text block below never shifts between the two states
-    local pos     = get_position()
-    local total   = get_duration()
+    local pos     = st.position
+    local total   = st.duration
     local is_live = total <= 0
 
     if not is_live then
