@@ -52,35 +52,35 @@ end
 local G_WIFI  = "\xEE\xA6\x86"
 local G_WIRED = "\xF3\xB0\xB2\x9D"
 
--- IFACE/WIFI/WIRED are substituted in net_conky_text(); keep on one line so
--- conky renders the header as a single row with alignr placing the glyph right.
-local _NET_TMPL = table.concat({
-    "${if_match \"${wireless_essid IFACE}\" != \"\"}",
-    "${if_match \"${wireless_essid IFACE}\" != \"off/any\"}",
-    "${color2}${font Material:size=10}WIFI${alignr}${voffset -2}",
-    "${font Rubik:bold:size=7}${color}${wireless_essid IFACE} ",
-    "${color2}(${wireless_link_qual_perc IFACE}%)",
-    "${else}",
-    "${color2}${font Symbols Nerd Font Mono:size=10}WIRED${alignr}${voffset -2}",
-    "${font Rubik:bold:size=7}${color}${gw_iface}",
-    "${endif}",
-    "${else}",
-    "${color2}${font Symbols Nerd Font Mono:size=10}WIRED${alignr}${voffset -2}",
-    "${font Rubik:bold:size=7}${color}${gw_iface}",
-    "${endif}\n",
-    "${font Rubik:bold:size=7}${color #9ed1ff}${addr ${gw_iface}}",
-    "${alignr}${color}${texeci 86400 curl -s https://api.ipify.org}\n",
-    "${voffset 115}${font Rubik:bold:size=7}${color2}IN: ${color}${tcp_portmon 1 32767 count}",
-    "  ${offset 7}${color2}OUT: ${color}${tcp_portmon 32768 61000 count}",
-    "${alignr}${color2}TOTAL: ${color}${tcp_portmon 1 65535 count}",
-})
-
-local function net_conky_text(iface)
-    return _NET_TMPL
-        :gsub("IFACE", iface)
-        :gsub("WIFI",  G_WIFI)
-        :gsub("WIRED", G_WIRED)
+-- iface/is_wifi/essid are resolved once per tick by conky_main() (the sole
+-- ad-hoc conky_parse() caller for wireless_essid/gw_iface -- see its comment
+-- for why) and cached in net_essid/net_is_wifi/net_iface below; this function
+-- embeds those literal, already-resolved values into the returned template
+-- instead of re-referencing ${wireless_essid}/${gw_iface} live, since a
+-- second ad-hoc call to either within the same update tick always reads back
+-- "(null)"/empty rather than the real value.
+local function net_conky_text(iface, is_wifi, essid)
+    local header
+    if is_wifi then
+        header = "${color2}${font Material:size=10}" .. G_WIFI .. "${alignr}${voffset -2}"
+            .. "${font Rubik:bold:size=7}${color}" .. essid .. " "
+            .. "${color2}(${wireless_link_qual_perc " .. iface .. "}%)"
+    else
+        header = "${color2}${font Symbols Nerd Font Mono:size=10}" .. G_WIRED .. "${alignr}${voffset -2}"
+            .. "${font Rubik:bold:size=7}${color}" .. iface
+    end
+    return header .. "\n"
+        .. "${font Rubik:bold:size=7}${color #9ed1ff}${addr " .. iface .. "}"
+        .. "${alignr}${color}${texeci 86400 curl -s https://api.ipify.org}\n"
+        .. "${voffset 115}${font Rubik:bold:size=7}${color2}IN: ${color}${tcp_portmon 1 32767 count}"
+        .. "  ${offset 7}${color2}OUT: ${color}${tcp_portmon 32768 61000 count}"
+        .. "${alignr}${color2}TOTAL: ${color}${tcp_portmon 1 65535 count}"
 end
+
+-- populated once per tick by conky_main(); conky_nsd_text() reads this
+-- instead of re-deriving it, at most one frame stale (irrelevant for
+-- wifi/gateway state, which changes far slower than update_interval)
+local net_essid, net_is_wifi, net_iface = "", false, NET_IFACE
 
 -- ── Combo summary view ────────────────────────────────────────────────────────
 -- Three stacked sections (NET / SYS / DISK), each ~44 px.  No graphs.
@@ -98,7 +98,11 @@ local function co_net_fmt(v)
     else                    return "0b" end
 end
 
-local function draw_combo(cr, w, h)
+-- iface/is_wifi/essid come from conky_main (computed once per frame --
+-- conky_parse's "${gw_iface}"/"${wireless_essid}" only return correctly on
+-- the first call within an update tick; a redundant call here would hit the
+-- tick's second call and always read back "(null)"/empty)
+local function draw_combo(cr, w, h, iface, is_wifi, essid)
     local M  = 4
     local LV = 72    -- left-value right edge
     local RL = 90    -- right-label left edge
@@ -127,10 +131,6 @@ local function draw_combo(cr, w, h)
     -- row 3 (+38): Qual/GW + value | TCP + in/out
     -- mid  (+51): UP / DN speeds
     local y0      = TOPS[1]
-    local essid   = conky_parse("${wireless_essid " .. NET_IFACE .. "}")
-    local is_wifi = essid and essid ~= "" and essid ~= "off/any"
-    local gw      = conky_parse("${gw_iface}") or NET_IFACE
-    local iface   = is_wifi and NET_IFACE or gw
 
     cairo_set_font_size(cr, 12)
     if is_wifi then
@@ -144,7 +144,7 @@ local function draw_combo(cr, w, h)
     cairo_set_font_size(cr, 11)
     cairo_select_font_face(cr, "Rubik", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
     sc(CO_WHITE)
-    dr(xr, y0 + 12, is_wifi and (essid or "--") or gw)
+    dr(xr, y0 + 12, is_wifi and (essid or "--") or iface)
 
     cairo_set_font_size(cr, 9)
     cairo_select_font_face(cr, "Rubik", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
@@ -298,7 +298,7 @@ end
 function conky_nsd_text()
     if combo_mode then return "" end
     if VIEW_ORDER[view_idx] == "net" then
-        return net_conky_text(NET_IFACE)
+        return net_conky_text(net_iface, net_is_wifi, net_essid)
     end
     return "${voffset 116}"
 end
@@ -336,10 +336,14 @@ function conky_main()
     local w  = conky_window.width
     local h  = conky_window.height
 
-    local essid = conky_parse("${wireless_essid " .. NET_IFACE .. "}")
-    local iface = (essid and essid ~= "" and essid ~= "off/any")
-        and NET_IFACE
-        or  (conky_parse("${gw_iface}") or NET_IFACE)
+    -- sole ad-hoc conky_parse() call for these per tick -- a second call
+    -- anywhere else in the same tick (e.g. inside the conky.text template)
+    -- always reads back "(null)"/empty instead of the real value, so
+    -- net_conky_text() reads the cache below instead of re-deriving it
+    local essid   = conky_parse("${wireless_essid " .. NET_IFACE .. "}")
+    local is_wifi = essid and essid ~= "" and essid ~= "off/any"
+    local iface   = is_wifi and NET_IFACE or (conky_parse("${gw_iface}") or NET_IFACE)
+    net_essid, net_is_wifi, net_iface = essid, is_wifi, iface
 
     -- keep all graph histories warm regardless of active view/mode
     net.update(iface)
@@ -347,7 +351,7 @@ function conky_main()
     disk.update(DISK_DEV)
 
     if combo_mode then
-        draw_combo(cr, w, h)
+        draw_combo(cr, w, h, iface, is_wifi, essid)
     else
         local view = VIEW_ORDER[view_idx]
 

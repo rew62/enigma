@@ -192,7 +192,11 @@ local HDR_RL = 90
 local HDR_R1 = 13
 local HDR_R2 = 26
 
-local function draw_net_header(cr, w)
+-- iface/is_wifi come from conky_main2 (computed once per frame -- conky_parse
+-- caches "${gw_iface}"/"${wireless_essid}" per update tick, so re-deriving
+-- them again here would hit the tick's second call and always read back
+-- "(null)"/empty; see conky_main2 for the single per-frame source of truth)
+local function draw_net_header(cr, w, iface, is_wifi)
     local xr = w - HDR_M
     local te = cairo_text_extents_t:create(); tolua.takeownership(te)
 
@@ -203,11 +207,6 @@ local function draw_net_header(cr, w)
         cairo_move_to(cr, x - te.x_advance, y); cairo_show_text(cr, s)
     end
     local function gs(var) local v = conky_parse(var); return (v and v ~= "") and v or "--" end
-
-    local essid   = conky_parse("${wireless_essid " .. NET_IFACE .. "}")
-    local is_wifi = essid and essid ~= "" and essid ~= "off/any"
-    local gw      = conky_parse("${gw_iface}") or NET_IFACE
-    local iface   = is_wifi and NET_IFACE or gw
 
     cairo_set_font_size(cr, 10)
 
@@ -237,7 +236,8 @@ end
 
 -- ── Combo summary view (always visible) ───────────────────────────────────────
 
-local function draw_combo(cr, w, h)
+-- iface/is_wifi/essid come from conky_main2 (see draw_net_header's comment)
+local function draw_combo(cr, w, h, iface, is_wifi, essid)
     local M  = 4
     local LV = 72
     local RL = 90
@@ -261,10 +261,6 @@ local function draw_combo(cr, w, h)
 
     -- ── NET ─────────────────────────────────────────────────────────────
     local y0    = TOPS[1]
-    local essid = conky_parse("${wireless_essid " .. NET_IFACE .. "}")
-    local is_wifi = essid and essid ~= "" and essid ~= "off/any"
-    local gw    = conky_parse("${gw_iface}") or NET_IFACE
-    local iface = is_wifi and NET_IFACE or gw
 
     -- row 1: hex maze icon | ssid / gw name
     draw_hex_maze(cr, M, y0, 13, 13)
@@ -272,7 +268,7 @@ local function draw_combo(cr, w, h)
     cairo_set_font_size(cr, 12)
     cairo_select_font_face(cr, "Rubik", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
     sc(CO_WHITE)
-    dr(xr, y0 + 12, is_wifi and (essid or "--") or gw)
+    dr(xr, y0 + 12, is_wifi and (essid or "--") or iface)
 
     -- row 2: IPs (small bold, matches net graph view)
     cairo_set_font_size(cr, 9)
@@ -462,10 +458,14 @@ function conky_main2()
     local w  = conky_window.width
     local h  = conky_window.height
 
-    local essid = conky_parse("${wireless_essid " .. NET_IFACE .. "}")
-    local iface = (essid and essid ~= "" and essid ~= "off/any")
-        and NET_IFACE
-        or  (conky_parse("${gw_iface}") or NET_IFACE)
+    -- single per-frame read: conky_parse("${gw_iface}") only returns correctly
+    -- on the first call within an update tick -- every redundant call after it
+    -- reads back "(null)". Compute essid/is_wifi/iface exactly once here and
+    -- thread them through to draw_combo/draw_net_header instead of letting
+    -- each re-derive (and re-call gw_iface) on its own.
+    local essid   = conky_parse("${wireless_essid " .. NET_IFACE .. "}")
+    local is_wifi = essid and essid ~= "" and essid ~= "off/any"
+    local iface   = is_wifi and NET_IFACE or (conky_parse("${gw_iface}") or NET_IFACE)
 
     -- keep all graph histories warm regardless of current view
     net.update(iface)
@@ -473,7 +473,7 @@ function conky_main2()
     disk.update(DISK_DEV)
 
     -- combo always on top; draw_dividers(cr,w,h) called inside for full widget borders
-    draw_combo(cr, w, h)
+    draw_combo(cr, w, h, iface, is_wifi, essid)
 
     local lbl = GRAPH_LABELS[view_idx]
 
@@ -514,7 +514,7 @@ function conky_main2()
     if view == "net" then
         NET_TOP_OFFSET = 31
         NET_BOT_OFFSET = 4
-        draw_net_header(cr, w)
+        draw_net_header(cr, w, iface, is_wifi)
         net.draw(cr, w, gh)
     elseif view == "sys" then
         SYS_TOP_OFFSET = 31
