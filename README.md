@@ -7,7 +7,7 @@ Run everything together or each component independently.
 * Designed for **low clutter, high signal**
 * Easily customizable and extendable
 * Built on Linux Mint 22.3 / Cinnamon Edition
-* Tested with conky 1.19.8 and 1.22.3 — on 1.22.x, conky must be built with `BUILD_XINPUT=ON` and `BUILD_WLAN=ON` (cmake defaults are off, silently breaking mouse hooks and wifi detection); see `utils/build-conky.sh` for a known-good build
+* Tested with conky 1.19.8 and 1.22.3 — on 1.22.x, conky must be built with `BUILD_XINPUT=ON` and `BUILD_WLAN=ON`; see `utils/build-conky.sh` for a known-good build
 
 ---
 
