@@ -7,6 +7,7 @@ Run everything together or each component independently.
 * Designed for **low clutter, high signal**
 * Easily customizable and extendable
 * Built on Linux Mint 22.3 / Cinnamon Edition
+* Tested with conky 1.19.8 and 1.22.3 — on 1.22.x, conky must be built with `BUILD_XINPUT=ON` and `BUILD_WLAN=ON` (cmake defaults are off, silently breaking mouse hooks and wifi detection); see `utils/build-conky.sh` for a known-good build
 
 ---
 
@@ -162,6 +163,7 @@ With no arguments it launches the `default` group. Use `etmux help` to list all 
 |---|---|
 | `default` | `c e ec ed em en es ev g m si wf wt zen` |
 | `stack1` | `a sd st r t zkr` |
+| `extras` | `a sd r t zen zkr` |
 | `column1` | `ec em wt wf c ecg ev e` (auto-stacked, see below) |
 | `column2` | `m si g` (auto-stacked, see below) |
 
@@ -318,6 +320,7 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
 │   └── start-lyrics-conky.sh                 launches active-player.sh + lyrics conky together
 ├── scripts/                            - shared scripts and Lua libraries
 │   ├── draw_bg.lua                     - shared background/divider drawing
+│   ├── env.lua                         - .env loader (env.get)
 │   ├── functions.lua
 │   ├── json.lua
 │   ├── loadall.lua                     - WIDGETS table / module runner
@@ -331,6 +334,7 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
 │   ├── sky_update.py                   - arc sky/planet data updater
 │   └── window.lua                      - mouse event handler (Ctrl+click positioning)
 ├── utils/
+│   ├── build-conky.sh                  - reference build recipes for conky 1.19.8/1.22.3 (prod + sidecar)
 │   ├── enigma-logo.lua                 [zen] ENIGMA logotype
 │   ├── fourmilab-earth.sh              - fetches earth satellite image (run via cron)
 │   ├── kroy.lua                        [zkr] Killroy Was Here
