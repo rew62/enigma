@@ -191,7 +191,7 @@ With no arguments it launches the `default` group. Use `etmux help` to list all 
 | `sd` | `widgets/solar_dial2.lua` | Solar dial ring |
 | `si` | `widgets/indices2.rc` | Stock indices |
 | `st` | `widgets/ticker.rc` | Stock price table |
-| `t` | `widgets/alien-clock2.lua` | Sweep ring clock |
+| `t` | `widgets/enigma-clock.lua` | Minimal ring clock |
 | `wf` | `widgets/nws_forecast_small.rc` | NWS forecast strip |
 | `wt` | `widgets/tempbar.rc` | Temperature bar |
 | `zen` | `utils/enigma-logo.lua` | ENIGMA logotype |
@@ -341,7 +341,6 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
 │   ├── position-clean.sh               - revert Ctrl+click position saves in rc files
 │   └── rc                              - shortcut launcher (place on PATH)
 └── widgets/                            - all widget rc and Lua files (flat)
-    ├── alien-clock2.lua                [t]   Sweep ring clock
     ├── arc.rc                          [a]   Arc (horizon, planets, sun/moon, weather)
     ├── arc6.lua                              arc renderer module
     ├── disk.lua                              disk module (graph + stats)
@@ -349,6 +348,7 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
     ├── dots4.lua                             world map land-dot grid data
     ├── draw_nws_forecast_small.lua           forecast strip renderer
     ├── draw_tempbar.lua                      temperature bar renderer
+    ├── enigma-clock.lua                [t]   Minimal ring clock
     ├── enigma-earth.lua                [e]   Earth satellite image viewer
     ├── espcal.lua                      [ec]  Lua calendar
     ├── gcal.lua                              gcal renderer module
