@@ -84,12 +84,24 @@ local net_essid, net_is_wifi, net_iface = "", false, NET_IFACE
 
 -- ── Combo summary view ────────────────────────────────────────────────────────
 -- Three stacked sections (NET / SYS / DISK), each ~44 px.  No graphs.
--- All values read via conky_parse; module histories kept warm by conky_main.
+-- Values the module update()s already parsed this tick (cpu/up/dn/diskio)
+-- are read from their caches; the rest via conky_parse. Module histories
+-- kept warm by conky_main.
 
 local CO_HEAD  = { 0x2D/255, 0x9E/255, 0xEA/255 }
 local CO_WHITE = { 0xe8/255, 0xe8/255, 0xe8/255 }
 local CO_LINE  = { 0.38, 0.56, 0.88 }
 local CO_TEMP_LO, CO_TEMP_HI = 30, 95
+
+-- battery/thermal presence is static hardware state: probe sysfs once at
+-- load instead of io.open()ing every frame
+local function sysfs_exists(p)
+    local f = io.open(p, "r")
+    if f then f:close(); return true end
+    return false
+end
+local HAS_BAT = sysfs_exists("/sys/class/power_supply/BAT0/uevent")
+local HAS_TZ  = sysfs_exists("/sys/class/thermal/thermal_zone0/temp")
 
 local function co_net_fmt(v)
     local kbs = tonumber(v) or 0
@@ -121,6 +133,8 @@ local function draw_combo(cr, w, h, iface, is_wifi, essid)
         cairo_move_to(cr, M, y); cairo_line_to(cr, w - M, y); cairo_stroke(cr)
     end
     local function gs(var) local v = conky_parse(var); return (v and v ~= "") and v or "--" end
+    -- same "--" fallback for values already cached by the module update()s
+    local function gv(v) return (v and v ~= "") and v or "--" end
 
     -- 13 px between every row; section gap = 7 px below mid to sep + 1 px sep + 12 px to next row1
     local TOPS = { 3, 62, 108 }
@@ -174,26 +188,21 @@ local function draw_combo(cr, w, h, iface, is_wifi, essid)
     cairo_set_font_size(cr, 11)
     cairo_select_font_face(cr, "Rubik", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
     sc(CO_WHITE)
-    dr(LV, y0 + 51, co_net_fmt(gs("${upspeedf "   .. iface .. "}")))
-    dr(xr, y0 + 51, co_net_fmt(gs("${downspeedf " .. iface .. "}")))
+    dr(LV, y0 + 51, co_net_fmt(net.last_up))
+    dr(xr, y0 + 51, co_net_fmt(net.last_dn))
 
     sep(TOPS[2] - 1)
 
     -- ── SYS ─────────────────────────────────────────────────────────────
     y0 = TOPS[2]
 
-    local bat_f = io.open("/sys/class/power_supply/BAT0/uevent", "r")
-    local has_bat = bat_f ~= nil
-    if bat_f then bat_f:close() end
     local r2_lbl, r2_val, r2_temp
-    if has_bat then
+    if HAS_BAT then
         r2_lbl = "PWR"
         r2_val = gs("${battery_percent BAT0}") .. "%"
     else
-        local tz = io.open("/sys/class/thermal/thermal_zone0/temp", "r")
-        if tz then tz:close() end
         r2_lbl = "Temp"
-        if tz then
+        if HAS_TZ then
             local raw = gs("${acpitemp}")
             r2_val  = raw .. "\xc2\xb0"
             r2_temp = tonumber(raw)
@@ -212,7 +221,7 @@ local function draw_combo(cr, w, h, iface, is_wifi, essid)
     cairo_set_font_size(cr, 11)
     cairo_select_font_face(cr, "Rubik", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
     sc(CO_WHITE)
-    dr(LV, y0 + 12, gs("${cpu cpu0}") .. "%")
+    dr(LV, y0 + 12, gv(sys.cpu_raw) .. "%")
     dr(xr, y0 + 12, gs("${memperc}") .. "%")
 
     cairo_set_font_size(cr, 10)
@@ -287,8 +296,8 @@ local function draw_combo(cr, w, h, iface, is_wifi, essid)
     cairo_set_font_size(cr, 11)
     cairo_select_font_face(cr, "Rubik", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
     sc(CO_WHITE)
-    dr(LV, y0 + 38, gs("${diskio_read "  .. DISK_DEV .. "}"))
-    dr(xr, y0 + 38, gs("${diskio_write " .. DISK_DEV .. "}"))
+    dr(LV, y0 + 38, gv(disk.rd_raw))
+    dr(xr, y0 + 38, gv(disk.wr_raw))
 
     draw_dividers(cr, w, h)
 end

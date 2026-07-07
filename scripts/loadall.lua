@@ -88,10 +88,38 @@ local function setup_network()
     NET_TOP_OFFSET = 32
     NET_BOT_OFFSET = 20
 
+    local G_WIFI  = "\xEE\xA6\x86"      -- Material wifi glyph
+    local G_WIRED = "\xF3\xB0\xB2\x9D"  -- Nerd Font lan glyph
+
+    -- populated once per tick by conky_main() below -- the sole ad-hoc
+    -- conky_parse() caller for wireless_essid/gw_iface, since on conky 1.22.x
+    -- a redundant call to either within the same update tick reads back
+    -- "(null)"/empty instead of the real value (see nsd.lua for the same fix)
+    local net_essid, net_is_wifi, net_iface = "", false, iface
+
+    -- header + addr lines for network.rc's ${lua_parse net_text}; embeds the
+    -- already-resolved essid/iface as literals instead of re-referencing
+    -- ${wireless_essid}/${gw_iface} live
+    function conky_net_text()
+        local header
+        if net_is_wifi then
+            header = "${color2}${font Material:size=10}" .. G_WIFI .. "${alignr}${voffset -2}"
+                .. "${font Rubik:bold:size=7}${color}" .. net_essid .. " "
+                .. "${color2}(${wireless_link_qual_perc " .. net_iface .. "}%)"
+        else
+            header = "${color2}${font Symbols Nerd Font Mono:size=10}" .. G_WIRED .. "${alignr}${voffset -2}"
+                .. "${font Rubik:bold:size=7}${color}" .. net_iface
+        end
+        return header .. "\n"
+            .. "${font Rubik:bold:size=7}${color #9ed1ff}${addr " .. net_iface .. "}"
+            .. "${alignr}${color}${texeci 86400 curl -s https://api.ipify.org}"
+    end
+
     function conky_vars()
         conky_script_name = conky_config:match("([^/]+)$")
         local t = conky_parse("${template1}")
         if t and t ~= "" then iface = t end
+        net_iface = iface
         print("enigma-net: iface=" .. iface)
     end
 
@@ -112,10 +140,12 @@ local function setup_network()
 
         local active_iface = iface
         local essid = conky_parse("${wireless_essid " .. iface .. "}")
-        if not essid or essid == "" or essid == "off/any" then
+        local is_wifi = essid and essid ~= "" and essid ~= "off/any"
+        if not is_wifi then
             local gw = conky_parse("${gw_iface}")
             if gw and gw ~= "" then active_iface = gw end
         end
+        net_essid, net_is_wifi, net_iface = essid or "", is_wifi, active_iface
         net.update(active_iface)
         net.draw(cr, conky_window.width, conky_window.height)
 

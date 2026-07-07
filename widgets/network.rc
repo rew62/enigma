@@ -46,8 +46,10 @@ conky.config = {
     lua_mouse_hook     = 'mouse_hook',
 }
 
+-- Header + addr lines come from loadall.lua's conky_net_text(): essid/iface
+-- are resolved once per tick there (redundant ${wireless_essid}/${gw_iface}
+-- reads within a tick return "(null)"/empty on conky 1.22.x).
 conky.text = [[
-${if_match "${wireless_essid ${template1}}" != ""}${if_match "${wireless_essid ${template1}}" != "off/any"}${color2}${font Material:size=10}${alignr}${voffset -2}${font Rubik:bold:size=7}${color}${wireless_essid ${template1}} ${color2}(${wireless_link_qual_perc ${template1}}%)${else}${color2}${font Symbols Nerd Font Mono:size=10}󰲝${alignr}${voffset -2}${font Rubik:bold:size=7}${color}${gw_iface}${endif}${else}${color2}${font Symbols Nerd Font Mono:size=10}󰲝${alignr}${voffset -2}${font Rubik:bold:size=7}${color}${gw_iface}${endif}
-${font Rubik:bold:size=7}${color #9ed1ff}${addr ${gw_iface}}${alignr}${color}${texeci 86400 curl -s https://api.ipify.org}
+${lua_parse net_text}
 ${voffset 99}${font Rubik:bold:size=7}${color2}IN: ${color}${tcp_portmon 1 32767 count}  ${offset 7}${color2}OUT: ${color}${tcp_portmon 32768 61000 count}${alignr}${color2}TOTAL: ${color}${tcp_portmon 1 65535 count}
 ]]

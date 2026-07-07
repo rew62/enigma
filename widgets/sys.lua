@@ -10,6 +10,18 @@ local HIST_N    = 71
 local cpu_hist  = {}
 local load_hist = {}
 local head      = 1
+-- M.cpu_raw: last ${cpu cpu0} string, cached by M.update() so draw_header()
+-- (and the nsd/nsd2 combo views) don't re-parse it the same tick
+
+-- battery/thermal presence is static hardware state: probe sysfs once at
+-- load instead of io.open()ing every frame
+local function sysfs_exists(p)
+    local f = io.open(p, "r")
+    if f then f:close(); return true end
+    return false
+end
+local HAS_BAT = sysfs_exists("/sys/class/power_supply/BAT0/uevent")
+local HAS_TZ  = sysfs_exists("/sys/class/thermal/thermal_zone0/temp")
 
 for i = 1, HIST_N do cpu_hist[i] = 0; load_hist[i] = 0 end
 
@@ -67,22 +79,17 @@ end
 
 local function draw_header(cr, w)
     local xr      = w - HDR_M
-    local cpu_pct = get_stat("${cpu cpu0}") .. "%"
+    local cpu_pct = ((M.cpu_raw and M.cpu_raw ~= "") and M.cpu_raw or "--") .. "%"
     local mem_pct = get_stat("${memperc}") .. "%"
     local uptime  = get_stat("${uptime_short}")
 
-    local bat_f   = io.open("/sys/class/power_supply/BAT0/uevent", "r")
-    local has_bat = bat_f ~= nil
-    if bat_f then bat_f:close() end
     local right2_lbl, right2_val, right2_temp
-    if has_bat then
+    if HAS_BAT then
         right2_lbl = "PWR"
         right2_val = get_stat("${battery_percent BAT0}") .. "%"
     else
-        local tz = io.open("/sys/class/thermal/thermal_zone0/temp", "r")
-        if tz then tz:close() end
         right2_lbl = "TEMP"
-        if tz then
+        if HAS_TZ then
             local raw   = get_stat("${acpitemp}")
             right2_val  = raw .. "\xc2\xb0"
             right2_temp = tonumber(raw)
@@ -128,7 +135,8 @@ local function get(arr, age)
 end
 
 function M.update()
-    local cpu  = tonumber(conky_parse("${cpu cpu0}")) or 0
+    M.cpu_raw  = conky_parse("${cpu cpu0}")
+    local cpu  = tonumber(M.cpu_raw) or 0
     local load = tonumber(conky_parse("${loadavg 1}")) or 0
     cpu_hist[head]  = cpu
     load_hist[head] = load

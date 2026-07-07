@@ -33,6 +33,9 @@ end
 function M.update(iface)
     local up = tonumber(conky_parse("${upspeedf "   .. iface .. "}")) or 0
     local dn = tonumber(conky_parse("${downspeedf " .. iface .. "}")) or 0
+    -- latest samples (KiB/s, pre-floor) for readers that want the current
+    -- value without re-parsing the same variables this tick (nsd/nsd2 combo)
+    M.last_up, M.last_dn = up, dn
     -- noise floor: ignore background chatter (ARP/mDNS/etc) under 1 KiB/s
     if up < 1 then up = 0 end
     if dn < 1 then dn = 0 end

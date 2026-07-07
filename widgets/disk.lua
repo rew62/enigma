@@ -107,6 +107,9 @@ end
 function M.update(dev)
     local rs = conky_parse("${diskio_read "  .. dev .. "}")
     local ws = conky_parse("${diskio_write " .. dev .. "}")
+    -- latest raw strings for readers that want the current value without
+    -- re-parsing the same variables this tick (nsd/nsd2 combo)
+    M.rd_raw, M.wr_raw = rs, ws
     rd_hist[head] = parse_kbs(rs)
     wr_hist[head] = parse_kbs(ws)
     head = (head % HIST_N) + 1
