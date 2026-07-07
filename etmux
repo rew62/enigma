@@ -59,6 +59,7 @@ declare -A NAMED_GROUPS
 
 NAMED_GROUPS[default]="c e ec ed em en es ev g m si wf wt zen"
 NAMED_GROUPS[stack1]="a sd st r t zkr"
+NAMED_GROUPS[extras]="a sd r t zen zkr"
 
 # --- COLUMN groups: auto-stacked vertical columns ---
 # Any group whose name starts with "column" is launched as a vertical stack:
@@ -231,7 +232,7 @@ show_help() {
     echo "    x-au-s      Aurora System"
     echo ""
     echo "  Groups:"
-    for g in default stack1 column1 column2; do
+    for g in $(printf '%s\n' "${!NAMED_GROUPS[@]}" | sort); do
         printf "    %-12s %s\n" "$g" "${NAMED_GROUPS[$g]}"
     done
     echo ""
