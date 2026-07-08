@@ -462,6 +462,11 @@ Bundled (in `fonts/`):
 
 ## Related Projects
 
+* **[alien](https://github.com/rew62/alien)** — The suite Enigma originated from; home of the RSS feed viewer launched by etmux code `r` (clone into `~/.conky` so the shortcut finds it)
+  ```bash
+  git clone https://github.com/rew62/alien.git
+  ```
+
 * **[auzia-conky](https://github.com/rew62/auzia-conky)** — Forked and modified from [SZinedine/auzia-conky](https://github.com/SZinedine/auzia-conky)
   ```bash
   git clone https://github.com/rew62/auzia-conky.git
