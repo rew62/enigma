@@ -57,9 +57,9 @@ MAP[x-au-s]="~/.conky/conky-aurora/system|system.rc"
 # --- Named groups ---
 declare -A NAMED_GROUPS
 
-NAMED_GROUPS[default]="c e ec ed em en es ev g m si wf wt zen"
+NAMED_GROUPS[default]="c e ec ed em en es ev g m si wf wt zen zkr"
 NAMED_GROUPS[stack1]="a sd st r t zkr"
-NAMED_GROUPS[extras]="a sd r t zen zkr"
+NAMED_GROUPS[extras]="a sd t zen zkr"
 
 # --- COLUMN groups: auto-stacked vertical columns ---
 # Any group whose name starts with "column" is launched as a vertical stack:
