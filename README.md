@@ -27,7 +27,6 @@ Run everything together or each component independently.
 | **Indices** | Stock Indices |
 | **Music** | Now Playing (album art + controls), Spectrum EQ, Synced Lyrics, Song Info, Now Playing Sidepanel |
 | **Network** | Network Traffic Panel |
-| **RSS** | Click-enabled Feed Viewer |
 | **Solar Dial** | Solar position ring |
 | **Stocks** | Stock price table |
 | **System** | System Monitor |
@@ -83,12 +82,6 @@ See `.env-example` for the format reference.
 ---
 
 ## Features
-
-### Interactive RSS Feed
-
-* Clickable articles using `xdotool`
-* Toggle feeds via the double-arrow control
-* Feeds configured in `scripts/rss_feeds.conf`
 
 ### Weather System
 
@@ -187,7 +180,6 @@ With no arguments it launches the `default` group. Use `etmux help` to list all 
 | `m` | `music2/nowplaying.rc` | Now Playing (music2) |
 | `mp` | `widgets/playerctl.rc` | Now Playing sidepanel |
 | `msi` | `widgets/song-info.rc` | Song info (legacy) |
-| `r` | `widgets/rss.rc` | RSS feed viewer |
 | `sd` | `widgets/solar_dial2.lua` | Solar dial ring |
 | `si` | `widgets/indices2.rc` | Stock indices |
 | `st` | `widgets/ticker.rc` | Stock price table |
@@ -197,7 +189,7 @@ With no arguments it launches the `default` group. Use `etmux help` to list all 
 | `zen` | `utils/enigma-logo.lua` | ENIGMA logotype |
 | `zkr` | `utils/kroy.lua` | Killroy Was Here |
 
-`etmux` also has shortcuts into the sibling `auzia-conky` and `conky-aurora` repos (`auzia`, `x-au-m`, `x-au-s`) -- see [Related Projects](#related-projects).
+`etmux` also has shortcuts into sibling repos: `r` (RSS feed viewer from the external `alien` suite at `~/.conky/alien/rss`), plus `auzia`, `x-au-m`, `x-au-s` for `auzia-conky` and `conky-aurora` -- see [Related Projects](#related-projects). Codes whose directory isn't present are skipped at launch.
 
 #### etmux — Auto-Stacked Columns
 
@@ -253,7 +245,6 @@ A few widgets layer extra click behavior on top of that baseline:
 | `nsd.lua` | `Shift` + Left-click | Cycle views: net → sys → disk |
 | `nsd.lua` | `Shift` + Right-click | Toggle combo summary (all three, no graphs) |
 | `nsd2.lua` | Left-click | Cycle the graph: net → sys → disk |
-| `rss.rc` | Left-click | Open headline in browser, or advance to next feed |
 
 ---
 
@@ -328,8 +319,6 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
 │   ├── music_info.sh                   - playerctl track info for song-info.rc
 │   ├── nws_fetch.lua
 │   ├── owm_fetch.lua
-│   ├── rss-fetch.sh
-│   ├── rss_feeds.conf                  - RSS feed list
 │   ├── sample-luma.sh                  - wallpaper luminance sampler (sets bg_alpha)
 │   ├── sky_update.py                   - arc sky/planet data updater
 │   └── window.lua                      - mouse event handler (Ctrl+click positioning)
@@ -362,8 +351,6 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
     ├── nsd2.lua                        [ecg] Net/Sys/Disk combo (selectable graph)
     ├── nws_forecast_small.rc           [wf]  NWS forecast strip
     ├── playerctl.rc                    [mp]  Now Playing sidepanel
-    ├── rss.lua                               rss renderer module
-    ├── rss.rc                          [r]   RSS feed viewer
     ├── solar_dial2.lua                 [sd]  Solar dial ring
     ├── song-info.rc                    [msi] Song info (legacy)
     ├── stock-symbols.conf                    shared symbol list (ticker + indices2 expanded)
@@ -405,7 +392,6 @@ Everything is plain text -- no generated or binary config. Four layers, from bro
 
 | File | Configures |
 |---|---|
-| `scripts/rss_feeds.conf` | RSS feed list |
 | `widgets/stock-symbols.conf` | Ticker/indices stock symbol list |
 | `music2/eq-settings.ini` | EQ: config-name label, startup output, live-edit mode |
 | `music2/spectrum-configs/` | EQ spectrum presets -- click the widget to cycle them; edit or add your own (`live_edit="on"` reloads the active preset as you save) |
@@ -455,7 +441,7 @@ Widget positions aren't edited by hand: `Alt`+drag the window where you want it,
 
 Bundled (in `fonts/`):
 
-* **Barlow Condensed** — `rss.rc`
+* **Barlow Condensed** — rss widget (external `alien` suite)
 * **DejaVuSansM Nerd Font Propo** — monospace / Nerd Font glyphs
 * **Feather** — icon font
 * **GE Inspira**

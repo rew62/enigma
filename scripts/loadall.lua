@@ -197,47 +197,6 @@ local function setup_system()
     end
 end
 
-local function setup_rss()
-    local window     = require("window")
-    local rss        = require("rss")
-    local last_fetch = 0
-
-    -- rss.rc uses lua_startup_hook = 'startup' (not the usual 'vars'), so it
-    -- can kick off an immediate fetch at launch instead of waiting up to
-    -- FETCH_INTERVAL for the first one. Calls settings.lua's conky_vars()
-    -- itself since nothing else will.
-    function conky_startup()
-        conky_vars()
-        rss.fetch()
-        last_fetch = os.time()
-    end
-
-    function conky_mouse_hook(event)
-        local t = event.type
-        if t == "mouse_move" or t == "mouse_enter" or t == "mouse_leave" or t == "button_up" then return false end
-        if t ~= "button_down" then return false end
-
-        if window.handle_mouse(event) then return true end
-
-        if event.button ~= "left" then return false end
-        return rss.handle_click(event.y)
-    end
-
-    function conky_main()
-        if conky_window == nil then return end
-        if conky_window.width == 0 or conky_window.height == 0 then return end
-
-        draw_bg()
-
-        if os.time() - last_fetch >= rss.FETCH_INTERVAL then
-            rss.fetch()
-            last_fetch = os.time()
-        end
-
-        log_window_size()
-    end
-end
-
 -- Shared by nws_forecast_small.rc and tempbar.rc: both force conky_window to
 -- an exact target size every frame (border_inner_margin's auto-grow doesn't
 -- reliably apply to these empty-conky.text widgets), and both use
@@ -378,7 +337,6 @@ local WIDGETS = {
     -- move/kill is disabled via WIDGET_CONFIG in settings.lua
     ["song-info.rc"] = { modules = { "window" }, runner = true },
     ["playerctl.rc"] = { modules = { "window" }, runner = true },
-    ["rss.rc"]       = { modules = { "window", "rss" }, setup = setup_rss },
     ["ticker.rc"]    = { modules = { "window", "ticker" }, runner = true, draw_fn = "conky_draw_stocks" },
     ["vnstat-summary.rc"] = {
         modules = { "window", "vnstat-summary" }, runner = true,
