@@ -35,7 +35,10 @@ local TIME_FMT   = "%I:%M"       -- digits; zero-stripped, "a"/"p" appended belo
 local FONT       = "DejaVu Sans" -- try "DejaVu Sans Light" for thinner digits
 
 local FACE_RGBA  = { 0.16, 0.18, 0.21, 0.00 }  -- inner disc (alpha 0 = no disc)
-local TEXT_RGBA  = { 1.00, 1.00, 1.00, 0.95 }  -- time digits
+local TEXT_RGBA  = { 0.85, 0.85, 0.85, 0.95 }  -- time digits
+local MAZE_RGBA  = { 0.84, 0.92, 0.98, 0.35 }  -- hex maze watermark, whisper blue (alpha 0 = off)
+local MAZE_R     = 65                          -- watermark fit radius
+local MAZE_LINE  = 1                           -- outline width; 0 = solid fill
 
 -- One entry per ring, inside → out. Dial in per-ring:
 --   r     = ring radius        width   = ring line width
@@ -106,6 +109,124 @@ local function set_rgba(cr, c)
     cairo_set_source_rgba(cr, c[1], c[2], c[3], c[4] or 1)
 end
 
+-- ── Hex maze icon (enigma logo, ported from nsd2.lua; caller sets color) ──────
+-- SVG dimensions from enigma-logo2.lua; maze paths end at ~Y(180).
+
+local SVG_W = 210.02
+local SVG_H = 219.95
+
+local function draw_hex_maze(cr, ix, iy, iw, ih, stroke_w)
+    local function X(x) return ix + x * iw / SVG_W end
+    local function Y(y) return iy + y * ih / SVG_H end
+    cairo_move_to(cr, X(73.657), Y(39.97))
+    cairo_line_to(cr, X(104.99), Y(21.882))
+    cairo_line_to(cr, X(104.99), Y(15.101))
+    cairo_line_to(cr, X(75.513), Y(32.138))
+    cairo_line_to(cr, X(68.973), Y(20.753))
+    cairo_line_to(cr, X(27.065), Y(44.897))
+    cairo_line_to(cr, X(27.065), Y(134.93))
+    cairo_line_to(cr, X(32.88),  Y(131.54))
+    cairo_line_to(cr, X(32.88),  Y(48.287))
+    cairo_line_to(cr, X(67.116), Y(28.585))
+    cairo_close_path(cr)
+    cairo_move_to(cr, X(104.99), Y(173.21))
+    cairo_line_to(cr, X(76.645), Y(156.81))
+    cairo_line_to(cr, X(80.277), Y(150.52))
+    cairo_line_to(cr, X(104.99), Y(164.73))
+    cairo_line_to(cr, X(104.99), Y(158.03))
+    cairo_line_to(cr, X(46.041), Y(123.95))
+    cairo_line_to(cr, X(46.041), Y(91.005))
+    cairo_line_to(cr, X(53.389), Y(91.005))
+    cairo_line_to(cr, X(53.389), Y(119.75))
+    cairo_line_to(cr, X(59.284), Y(116.36))
+    cairo_line_to(cr, X(59.284), Y(85.19))
+    cairo_line_to(cr, X(46.041), Y(85.19))
+    cairo_line_to(cr, X(46.041), Y(55.878))
+    cairo_line_to(cr, X(40.228), Y(52.486))
+    cairo_line_to(cr, X(40.228), Y(127.34))
+    cairo_line_to(cr, X(75.513), Y(147.69))
+    cairo_line_to(cr, X(69.862), Y(157.62))
+    cairo_line_to(cr, X(68.973), Y(159.16))
+    cairo_line_to(cr, X(104.99), Y(179.99))
+    cairo_line_to(cr, X(182.99), Y(134.93))
+    cairo_line_to(cr, X(177.17), Y(131.54))
+    cairo_close_path(cr)
+    cairo_move_to(cr, X(104.99), Y(52.325))
+    cairo_line_to(cr, X(137.61), Y(71.139))
+    cairo_line_to(cr, X(143.5),  Y(67.749))
+    cairo_line_to(cr, X(104.99), Y(45.542))
+    cairo_line_to(cr, X(83.912), Y(57.735))
+    cairo_line_to(cr, X(90.452), Y(69.121))
+    cairo_line_to(cr, X(79.793), Y(75.338))
+    cairo_line_to(cr, X(79.793), Y(104.49))
+    cairo_line_to(cr, X(104.99), Y(119.1))
+    cairo_line_to(cr, X(130.26), Y(104.49))
+    cairo_line_to(cr, X(124.45), Y(101.1))
+    cairo_line_to(cr, X(104.99), Y(112.32))
+    cairo_line_to(cr, X(85.608), Y(101.1))
+    cairo_line_to(cr, X(85.608), Y(78.731))
+    cairo_line_to(cr, X(104.99), Y(67.506))
+    cairo_line_to(cr, X(124.45), Y(78.731))
+    cairo_line_to(cr, X(124.45), Y(85.19))
+    cairo_line_to(cr, X(104.74), Y(85.19))
+    cairo_line_to(cr, X(104.74), Y(91.005))
+    cairo_line_to(cr, X(130.26), Y(91.005))
+    cairo_line_to(cr, X(130.26), Y(75.338))
+    cairo_line_to(cr, X(104.99), Y(60.723))
+    cairo_line_to(cr, X(95.297), Y(66.377))
+    cairo_line_to(cr, X(91.584), Y(60.078))
+    cairo_close_path(cr)
+    cairo_move_to(cr, X(104.99), Y(142.76))
+    cairo_line_to(cr, X(84.962), Y(131.14))
+    cairo_line_to(cr, X(82.054), Y(136.22))
+    cairo_line_to(cr, X(104.99), Y(149.55))
+    cairo_line_to(cr, X(133.98), Y(132.75))
+    cairo_line_to(cr, X(127.35), Y(121.45))
+    cairo_line_to(cr, X(143.5),  Y(112.16))
+    cairo_line_to(cr, X(143.5),  Y(91.004))
+    cairo_line_to(cr, X(137.61), Y(91.004))
+    cairo_line_to(cr, X(137.61), Y(108.77))
+    cairo_line_to(cr, X(104.99), Y(127.58))
+    cairo_line_to(cr, X(72.445), Y(108.77))
+    cairo_line_to(cr, X(72.445), Y(71.14))
+    cairo_line_to(cr, X(66.552), Y(67.748))
+    cairo_line_to(cr, X(66.552), Y(112.16))
+    cairo_line_to(cr, X(104.99), Y(134.29))
+    cairo_line_to(cr, X(122.59), Y(124.19))
+    cairo_line_to(cr, X(126.3),  Y(130.49))
+    cairo_close_path(cr)
+    cairo_move_to(cr, X(156.66), Y(119.75))
+    cairo_line_to(cr, X(156.66), Y(60.159))
+    cairo_line_to(cr, X(104.99), Y(30.28))
+    cairo_line_to(cr, X(53.389), Y(60.159))
+    cairo_line_to(cr, X(59.285), Y(63.469))
+    cairo_line_to(cr, X(104.99), Y(37.064))
+    cairo_line_to(cr, X(150.77), Y(63.469))
+    cairo_line_to(cr, X(150.77), Y(116.36))
+    cairo_close_path(cr)
+    cairo_move_to(cr, X(131.8),  Y(37.305))
+    cairo_line_to(cr, X(164.01), Y(55.877))
+    cairo_line_to(cr, X(164.01), Y(123.95))
+    cairo_line_to(cr, X(132.93), Y(141.88))
+    cairo_line_to(cr, X(135.83), Y(146.96))
+    cairo_line_to(cr, X(169.83), Y(127.34))
+    cairo_line_to(cr, X(169.83), Y(52.487))
+    cairo_line_to(cr, X(139.47), Y(34.964))
+    cairo_line_to(cr, X(143.1),  Y(28.585))
+    cairo_line_to(cr, X(177.18), Y(48.288))
+    cairo_line_to(cr, X(182.99), Y(44.896))
+    cairo_line_to(cr, X(105.23), Y(0))
+    cairo_line_to(cr, X(105.23), Y(6.7827))
+    cairo_line_to(cr, X(138.34), Y(25.839))
+    cairo_close_path(cr)
+    if stroke_w and stroke_w > 0 then
+        cairo_set_line_width(cr, stroke_w)
+        cairo_stroke(cr)
+    else
+        cairo_fill(cr)
+    end
+end
+
 local function clock(cr, w, h)
     local s  = math.min(w, h) / DESIGN
     local cx = w / 2
@@ -119,6 +240,15 @@ local function clock(cr, w, h)
         set_rgba(cr, FACE_RGBA)
         cairo_arc(cr, cx, cy, FACE_R * s, 0, 2*math.pi)
         cairo_fill(cr)
+    end
+
+    -- ── Hex maze watermark (behind the digital time) ─────────────────────────
+    if (MAZE_RGBA[4] or 0) > 0 then
+        -- maze paths fit a circle of ~90 SVG units centered at (105, 90)
+        local k = MAZE_R * s / 90
+        set_rgba(cr, MAZE_RGBA)
+        draw_hex_maze(cr, cx - k * SVG_W / 2, cy - k * 90, k * SVG_W, k * SVG_H,
+                      MAZE_LINE * s)
     end
 
     -- ── Rings + dots (12 o'clock = zero, sweeps clockwise) ───────────────────
@@ -147,8 +277,8 @@ local function clock(cr, w, h)
     local ext = cairo_text_extents_t:create()
     cairo_select_font_face(cr, FONT,
         CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
-    for _, row in ipairs({ { time_txt, big, cy },
-                           { ampm, small, cy + 10 * s } }) do
+    for _, row in ipairs({ { time_txt, big, cy + 5 * s },
+                           { ampm, small, cy + 15 * s } }) do
         cairo_set_font_size(cr, row[2])
         cairo_text_extents(cr, row[1], ext)
         cairo_move_to(cr, cx - ext.width/2 - ext.x_bearing, row[3])
@@ -191,14 +321,14 @@ end
 -- When loaded via lua_load, conky global is nil — skip config/text.
 if conky then
     conky.config = {
-        lua_load          = './enigma-clock.lua',
+        lua_load          = './enigma-clock-v2.lua',
         lua_draw_hook_pre = 'draw_enigma_clock',
         lua_mouse_hook    = 'mouse_hook',
 
         background             = false,
         own_window             = true,
         own_window_type        = 'normal',
-        own_window_title       = 'enigma-clock',
+        own_window_title       = 'enigma-clock-v2',
         own_window_hints       = 'undecorated,below,sticky,skip_taskbar,skip_pager',
         own_window_argb_visual = true,
         own_window_argb_value  = 0,
