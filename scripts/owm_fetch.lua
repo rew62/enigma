@@ -6,7 +6,7 @@
 --   conky_owm_fetch()    call via loadall update_func; fetches if cache stale
 --   get_current()        returns _current table (nil until first fetch)
 --   owm_get(field)       returns tostring of one field, or "N/A"
--- v1 2026-07-04 @rew62
+-- v2 2026-07-09 @rew62
 
 local HOME = os.getenv("HOME") or ""
 local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or HOME .. "/.conky/enigma"
@@ -21,7 +21,8 @@ local OWM_API_KEY = env.get("OWM_API_KEY", "")
 local LAT         = env.get("LAT", "40.7128")
 local LON         = env.get("LON", "-74.0060")
 local UNITS       = env.get("UNITS", "imperial")
-local LANG        = env.get("LANG", "en")
+-- OWM lang code from the system locale (en_US.UTF-8 -> en); C/POSIX -> en
+local LANG        = (os.getenv("LANG") or ""):match("^(%l%l)") or "en"
 -- local CACHE_TTL   = tonumber(env.get("CACHE_TTL")) or 300
 local CACHE_TTL   = 300
 -- local ICON_SOURCE = env.get("ICON_SOURCE", "cdn")

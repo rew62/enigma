@@ -68,7 +68,6 @@ This will:
   * `CITY_ID` — OWM city ID
   * `LAT` / `LON` — Latitude and longitude (auto-detected via GeoClue or IP geolocation if you accept the prompt)
   * `UNITS` — `metric` (Celsius) or `imperial` (Fahrenheit)
-  * `LANG` — Language code (e.g. `en`, `fr`, `de`)
   * `INTERFACE_NAME` — Network interface (auto-detected)
   * `DISK_DEV` — Disk device for I/O graphs (auto-detected)
 * Optionally auto-detect your latitude/longitude via GeoClue (if available) or IP geolocation, pre-filling the `LAT`/`LON` defaults

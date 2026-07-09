@@ -1,6 +1,6 @@
 #!/bin/bash
 # enigma-config.sh - Setup and configure the enigma conky suite including fonts installed in fonts/ directory
-# v1 2026-07-04 @rew62
+# v2 2026-07-09 @rew62
 
 set -e
 
@@ -278,7 +278,6 @@ echo
 # ── Load and display existing .env if present ────────────────────────────
 OWM_API_KEY=""; CITY_ID=""; UNITS=""; LAT=""; LON=""; INTERFACE_NAME=""
 FINNHUB_API_KEY=""; TWELVEDATA_API_KEY=""; DISK_DEV=""
-LANG=""
 
 if [ -f "$ENV_FILE" ]; then
     source "$ENV_FILE"
@@ -296,7 +295,6 @@ if [ -f "$ENV_FILE" ]; then
     printf "  %-20s %s\n" "Latitude:"           "$LAT"
     printf "  %-20s %s\n" "Longitude:"          "$LON"
     printf "  %-20s %s\n" "Temp Unit:"          "$UNITS"
-    printf "  %-20s %s\n" "Language:"           "$LANG"
     printf "  %-20s %s\n" "Interface:"          "$INTERFACE_NAME"
     printf "  %-20s %s\n" "Disk device:"        "$DISK_DEV"
     echo
@@ -338,9 +336,6 @@ CITY_ID=${INPUT:-$CITY_ID}
 read -p "metric (Celsius) or imperial (Fahrenheit) [$UNITS]: " INPUT
 UNITS=${INPUT:-$UNITS}
 
-read -p "Language code (e.g. en, fr, de) [$LANG]: " INPUT
-LANG=${INPUT:-${LANG:-en}}
-
 read -p "Latitude [$LAT]: " INPUT
 LAT=${INPUT:-$LAT}
 
@@ -359,7 +354,6 @@ printf "  %-30s %s\n" "OWM API Key:"        "$OWM_API_KEY"
 printf "  %-30s %s\n" "FinnHub API Key:"    "$FINNHUB_API_KEY"
 printf "  %-30s %s\n" "City ID:"            "$CITY_ID"
 printf "  %-30s %s\n" "Temp Unit:"          "$UNITS"
-printf "  %-30s %s\n" "Language:"           "$LANG"
 printf "  %-30s %s\n" "Latitude:"           "$LAT"
 printf "  %-30s %s\n" "Longitude:"          "$LON"
 printf "  %-30s %s\n" "Interface:"          "$INTERFACE_NAME"
@@ -393,7 +387,6 @@ OWM_API_KEY=$OWM_API_KEY
 FINNHUB_API_KEY=$FINNHUB_API_KEY
 CITY_ID=$CITY_ID
 UNITS=$UNITS
-LANG=$LANG
 LAT=$LAT
 LON=$LON
 INTERFACE_NAME=$INTERFACE_NAME
