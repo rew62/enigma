@@ -1,4 +1,4 @@
--- enigma-clock-v2.lua — minimal ring clock, three hands  (conky -c enigma-clock-v2.lua)
+-- enigma-clock.lua — minimal ring clock, three hands  (conky -c enigma-clock.lua)
 --   Inner disc  → mostly opaque, digital time only
 --   Three rings → hour, minute, second (inside → out), 150 px overall
 --   Dots        → one per ring, smooth sub-second motion
@@ -321,14 +321,14 @@ end
 -- When loaded via lua_load, conky global is nil — skip config/text.
 if conky then
     conky.config = {
-        lua_load          = './enigma-clock-v2.lua',
+        lua_load          = './enigma-clock.lua',
         lua_draw_hook_pre = 'draw_enigma_clock',
         lua_mouse_hook    = 'mouse_hook',
 
         background             = false,
         own_window             = true,
         own_window_type        = 'normal',
-        own_window_title       = 'enigma-clock-v2',
+        own_window_title       = 'enigma-clock',
         own_window_hints       = 'undecorated,below,sticky,skip_taskbar,skip_pager',
         own_window_argb_visual = true,
         own_window_argb_value  = 0,
