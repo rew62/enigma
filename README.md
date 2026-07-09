@@ -31,7 +31,7 @@ Run everything together or each component independently.
 | **Stocks** | Stock price table |
 | **System** | System Monitor |
 | **vnstat** | Bandwidth Summary |
-| **Weather** | NWS Forecast Strip, Temperature Bar |
+| **Weather** | Forecast Strip (NWS for US, Met.no international), Temperature Bar |
 | **World Map** | Day/night world map |
 
 The **Earth Viewer** component is adapted from the *Aurora* set.
