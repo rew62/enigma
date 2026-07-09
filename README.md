@@ -69,8 +69,6 @@ This will:
   * `LAT` / `LON` — Latitude and longitude (auto-detected via GeoClue or IP geolocation if you accept the prompt)
   * `UNITS` — `metric` (Celsius) or `imperial` (Fahrenheit)
   * `LANG` — Language code (e.g. `en`, `fr`, `de`)
-  * `ICON_SOURCE` — `cdn` or `local` weather icons
-  * `CACHE_TTL` — Weather cache lifetime in seconds (default: 300)
   * `INTERFACE_NAME` — Network interface (auto-detected)
   * `DISK_DEV` — Disk device for I/O graphs (auto-detected)
 * Optionally auto-detect your latitude/longitude via GeoClue (if available) or IP geolocation, pre-filling the `LAT`/`LON` defaults
@@ -86,6 +84,7 @@ See `.env-example` for the format reference.
 ### Weather System
 
 * Uses **National Weather Service (NWS)** data for forecast and **openweathermap.org (OWM) API** for current conditions
+* Locations outside NWS coverage (non-US) automatically fall back to **Met.no** for forecasts — no key needed
 * OWM requires an API key — obtain one free at https://openweathermap.org/
 
 ### Stock Widgets
@@ -315,6 +314,7 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
 │   ├── functions.lua
 │   ├── json.lua
 │   ├── loadall.lua                     - WIDGETS table / module runner
+│   ├── met_fetch.lua                   - Met.no forecast fallback (outside NWS coverage)
 │   ├── multimon.sh                     - multi-month calendar renderer
 │   ├── music_info.sh                   - playerctl track info for song-info.rc
 │   ├── nws_fetch.lua

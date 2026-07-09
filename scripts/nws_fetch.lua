@@ -1,6 +1,7 @@
 -- nws_fetch.lua - NWS forecast fetcher, shared across multiple callers
+-- Falls back to met_fetch.lua (Met.no) when the location is outside NWS coverage
 -- Atomic-safe: tmp→mv writes + mkdir lock prevents duplicate concurrent fetches
--- v1 2026-07-04 @rew62
+-- v2 2026-07-09 @rew62
 
 local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma"
 package.path = package.path .. ";./?.lua;../?.lua;" .. ENIGMA_DIR .. "/scripts/?.lua"
@@ -14,7 +15,9 @@ local USER_AGENT      = "conky-nws-weather/1.0"
 local GRID_CACHE_FILE = "/tmp/nws_grid.json"
 local FCST_CACHE_FILE = "/dev/shm/conky/nws_forecast.json"
 local CURR_CACHE_FILE = "/dev/shm/conky/nws_current.json"
+local OOB_FLAG_FILE   = "/tmp/nws_oob.flag"   -- negative cache: /points 404 (outside NWS coverage)
 local GRID_CACHE_DAYS = 14
+local OOB_FLAG_DAYS   = 7
 local FCST_CACHE_MINS = 30
 local CURR_CACHE_MINS = 10
 local DAYS_WANTED     = 5
@@ -78,10 +81,33 @@ local function try_mkdir(path)
     return (ret == 0)
 end
 
+-- Like curl_get but reports the HTTP status, so callers can tell a
+-- definitive 404 (out of coverage) from a transient failure
+local function curl_get_code(url, out_file)
+    local cmd = string.format(
+        'curl -sL --max-time 15 -A "%s" -w "%%{http_code}" "%s" -o "%s" 2>/dev/null',
+        USER_AGENT, url, out_file)
+    local h = io.popen(cmd)
+    if not h then return false, 0 end
+    local code = tonumber(h:read("*a")) or 0
+    h:close()
+    return (code >= 200 and code < 300), code
+end
+
 ------------------------------------------------------------------------
 -- Step 1 – resolve lat/lon → NWS grid (cached, atomic write)
 ------------------------------------------------------------------------
+-- Latched out-of-coverage state, keyed to coordinates so a location
+-- change back into NWS coverage retries immediately instead of waiting
+-- out the flag TTL
+local function oob_latched()
+    if file_age_days(OOB_FLAG_FILE) >= OOB_FLAG_DAYS then return false end
+    return read_file(OOB_FLAG_FILE) == LATITUDE .. "," .. LONGITUDE
+end
+
 local function get_grid()
+    if oob_latched() then return nil end
+
     if file_age_days(GRID_CACHE_FILE) < GRID_CACHE_DAYS then
         local raw = read_file(GRID_CACHE_FILE)
         if raw then
@@ -92,8 +118,16 @@ local function get_grid()
 
     local url = string.format("https://api.weather.gov/points/%s,%s", LATITUDE, LONGITUDE)
     local tmp = GRID_CACHE_FILE .. ".tmp"
-    if not curl_get(url, tmp) then
-        print("nws_fetch: /points fetch failed")
+    local fetched, http_code = curl_get_code(url, tmp)
+    if not fetched then
+        os.execute("rm -f " .. tmp)
+        if http_code == 404 then
+            local f = io.open(OOB_FLAG_FILE, "w")
+            if f then f:write(LATITUDE .. "," .. LONGITUDE); f:close() end
+            print("nws_fetch: location outside NWS coverage, falling back to Met.no")
+        else
+            print("nws_fetch: /points fetch failed (HTTP " .. http_code .. ")")
+        end
         return nil
     end
 
@@ -494,7 +528,26 @@ local _curr_mtime = nil   -- mtime when _current was last decoded from disk
 function weather_update()
     _grid = get_grid()
     if not _grid then
-        print("nws_fetch: could not resolve grid")
+        -- Outside NWS coverage (or /points unreachable): fall back to
+        -- Met.no. met_fetch returns day records in the same shape, so
+        -- get_forecast() consumers are unaffected. Current observations
+        -- stay with owm_fetch, which all widgets already use.
+        local ok_met, met = pcall(require, "met_fetch")
+        if not ok_met then
+            print("nws_fetch: met_fetch load failed: " .. tostring(met))
+            return
+        end
+        local raw = met.fetch_forecast()
+        local mt  = met.cache_mtime()
+        if mt ~= _fcst_mtime and raw then
+            local fc, err = met.parse_forecast(raw)
+            if fc then
+                _forecast   = fc
+                _fcst_mtime = mt
+            else
+                print("met_fetch: parse error: " .. tostring(err))
+            end
+        end
         return
     end
 
