@@ -40,6 +40,15 @@ local MAZE_RGBA  = { 0.84, 0.92, 0.98, 0.35 }  -- hex maze watermark, whisper bl
 local MAZE_R     = 65                          -- watermark fit radius
 local MAZE_LINE  = 1                           -- outline width; 0 = solid fill
 
+-- Random dot field behind everything, à la polycore's MemoryGrid: a shuffled
+-- grid of tiny squares in three brightness tiers. Positions fixed at load.
+local DOTS_RGB   = { 0.40, 1.00, 1.00 }        -- polycore graph cyan-blue
+local DOTS_ALPHA = 0.50                        -- brightest tier alpha; 0 = off
+local DOTS_R     = 32                          -- scatter radius (design px); inside hour ring (r 34, width 2)
+local DOTS_SIZE  = 2                           -- square edge (design px)
+local DOTS_GAP   = 1                           -- space between squares
+local DOTS_TWINKLE = 8                         -- mean twinkle period, seconds; 0 = static
+
 -- One entry per ring, inside → out. Dial in per-ring:
 --   r     = ring radius        width   = ring line width
 --   dot   = dot radius         ring_rgba / dot_rgb = colors
@@ -102,6 +111,40 @@ local function hand_fracs()
         second = sec / 60,
     }
 end
+
+-- ── Random dot field (built once at load; brightness twinkles per frame) ─────
+-- Grid cells inside a DOTS_R circle, Fisher-Yates shuffled, then assigned
+-- bright/mid/faint tiers like MemoryGrid plus a per-dot twinkle phase/speed.
+-- Each cell: { x, y, base_brightness, phase, speed }
+local DOTS = (function()
+    math.randomseed(os.time())
+    local cells, step = {}, DOTS_SIZE + DOTS_GAP
+    for x = -DOTS_R, DOTS_R, step do
+        for y = -DOTS_R, DOTS_R, step do
+            -- keep a cell only if its whole square fits inside the circle:
+            -- test the corner farthest from center ((x,y) is the top-left)
+            local fx = math.max(math.abs(x), math.abs(x + DOTS_SIZE))
+            local fy = math.max(math.abs(y), math.abs(y + DOTS_SIZE))
+            if fx * fx + fy * fy <= DOTS_R * DOTS_R then
+                cells[#cells + 1] = { x, y }
+            end
+        end
+    end
+    for i = #cells, 2, -1 do
+        local j = math.random(i)
+        cells[i], cells[j] = cells[j], cells[i]
+    end
+    -- tier fractions of the shuffled list, brightness relative to DOTS_ALPHA
+    local tiers = { { 0.12, 1.00 }, { 0.22, 0.45 }, { 1.00, 0.12 } }
+    local ti = 1
+    for i, c in ipairs(cells) do
+        while i > math.floor(#cells * tiers[ti][1] + 0.5) do ti = ti + 1 end
+        c[3] = tiers[ti][2]
+        c[4] = math.random() * 2 * math.pi     -- twinkle phase
+        c[5] = 0.75 + math.random() * 0.5      -- twinkle speed jitter (±25%)
+    end
+    return cells
+end)()
 
 -- ─────────────────────────────────────────────────────────────────────────────
 
@@ -240,6 +283,27 @@ local function clock(cr, w, h)
         set_rgba(cr, FACE_RGBA)
         cairo_arc(cr, cx, cy, FACE_R * s, 0, 2*math.pi)
         cairo_fill(cr)
+    end
+
+    -- ── Random dot field (behind everything) ─────────────────────────────────
+    if DOTS_ALPHA > 0 then
+        local r, g, b = DOTS_RGB[1], DOTS_RGB[2], DOTS_RGB[3]
+        cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE)
+        -- monotonic clock drives the twinkle; phase is random so origin is moot
+        local t = (DOTS_TWINKLE > 0) and (read_uptime() or os.time()) or 0
+        for _, d in ipairs(DOTS) do
+            local a = d[3]
+            if DOTS_TWINKLE > 0 then
+                -- slow sine fade between 10% and 100% of base brightness
+                local omega = 2 * math.pi * d[5] / DOTS_TWINKLE
+                a = a * (0.55 + 0.45 * math.sin(t * omega + d[4]))
+            end
+            cairo_set_source_rgba(cr, r, g, b, DOTS_ALPHA * a)
+            cairo_rectangle(cr, cx + d[1] * s, cy + d[2] * s,
+                            DOTS_SIZE * s, DOTS_SIZE * s)
+            cairo_fill(cr)
+        end
+        cairo_set_antialias(cr, CAIRO_ANTIALIAS_DEFAULT)
     end
 
     -- ── Hex maze watermark (behind the digital time) ─────────────────────────
