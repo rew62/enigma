@@ -278,7 +278,7 @@ echo
 # ── Load and display existing .env if present ────────────────────────────
 OWM_API_KEY=""; CITY_ID=""; UNITS=""; LAT=""; LON=""; INTERFACE_NAME=""
 FINNHUB_API_KEY=""; TWELVEDATA_API_KEY=""; DISK_DEV=""
-LANG=""; ICON_SOURCE=""; CACHE_TTL=""
+LANG=""
 
 if [ -f "$ENV_FILE" ]; then
     source "$ENV_FILE"
@@ -297,8 +297,6 @@ if [ -f "$ENV_FILE" ]; then
     printf "  %-20s %s\n" "Longitude:"          "$LON"
     printf "  %-20s %s\n" "Temp Unit:"          "$UNITS"
     printf "  %-20s %s\n" "Language:"           "$LANG"
-    printf "  %-20s %s\n" "Icon Source:"        "$ICON_SOURCE"
-    printf "  %-20s %s\n" "Cache TTL:"          "$CACHE_TTL"
     printf "  %-20s %s\n" "Interface:"          "$INTERFACE_NAME"
     printf "  %-20s %s\n" "Disk device:"        "$DISK_DEV"
     echo
@@ -343,12 +341,6 @@ UNITS=${INPUT:-$UNITS}
 read -p "Language code (e.g. en, fr, de) [$LANG]: " INPUT
 LANG=${INPUT:-${LANG:-en}}
 
-read -p "Icon source (cdn or local) [$ICON_SOURCE]: " INPUT
-ICON_SOURCE=${INPUT:-${ICON_SOURCE:-cdn}}
-
-read -p "Cache TTL in seconds [$CACHE_TTL]: " INPUT
-CACHE_TTL=${INPUT:-${CACHE_TTL:-300}}
-
 read -p "Latitude [$LAT]: " INPUT
 LAT=${INPUT:-$LAT}
 
@@ -368,8 +360,6 @@ printf "  %-30s %s\n" "FinnHub API Key:"    "$FINNHUB_API_KEY"
 printf "  %-30s %s\n" "City ID:"            "$CITY_ID"
 printf "  %-30s %s\n" "Temp Unit:"          "$UNITS"
 printf "  %-30s %s\n" "Language:"           "$LANG"
-printf "  %-30s %s\n" "Icon Source:"        "$ICON_SOURCE"
-printf "  %-30s %s\n" "Cache TTL:"          "$CACHE_TTL"
 printf "  %-30s %s\n" "Latitude:"           "$LAT"
 printf "  %-30s %s\n" "Longitude:"          "$LON"
 printf "  %-30s %s\n" "Interface:"          "$INTERFACE_NAME"
@@ -404,8 +394,6 @@ FINNHUB_API_KEY=$FINNHUB_API_KEY
 CITY_ID=$CITY_ID
 UNITS=$UNITS
 LANG=$LANG
-ICON_SOURCE=$ICON_SOURCE
-CACHE_TTL=$CACHE_TTL
 LAT=$LAT
 LON=$LON
 INTERFACE_NAME=$INTERFACE_NAME

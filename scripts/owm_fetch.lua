@@ -22,8 +22,10 @@ local LAT         = env.get("LAT", "40.7128")
 local LON         = env.get("LON", "-74.0060")
 local UNITS       = env.get("UNITS", "imperial")
 local LANG        = env.get("LANG", "en")
-local CACHE_TTL   = tonumber(env.get("CACHE_TTL")) or 300
-local ICON_SOURCE = env.get("ICON_SOURCE", "cdn")
+-- local CACHE_TTL   = tonumber(env.get("CACHE_TTL")) or 300
+local CACHE_TTL   = 300
+-- local ICON_SOURCE = env.get("ICON_SOURCE", "cdn")
+local ICON_SOURCE = "cdn"
 
 local CACHE_DIR  = "/dev/shm/conky"
 local CACHE_JSON = CACHE_DIR .. "/owm_current.json"
