@@ -34,7 +34,9 @@ end
 
 local window = try_require("window")
 
-local DW = 1400
+-- Art spans design-X 340–1060; X() subtracts the offset so the window hugs it.
+local DX = 340
+local DW = 720
 local DH = 800
 
 -- ── User config ───────────────────────────────────────────────────────────────
@@ -156,7 +158,7 @@ end
 local function kilroy(cr, w, h, data)
     local sx = w / DW
     local sy = h / DH
-    local function X(x) return x * sx end
+    local function X(x) return (x - DX) * sx end
     local function Y(y) return y * sy end
 
     cairo_set_source_rgba(cr, 0, 0, 0, 0)
@@ -305,13 +307,10 @@ if conky then
 
         double_buffer          = true,
         -- Scale the widget by changing all three values proportionally.
-        -- 100% = 700 x 400,  75% = 525 x 300,  50% = 350 x 200
-        --minimum_width        = 700,
-        --minimum_height       = 400,
-        --maximum_width        = 700,
-        minimum_width          = 350,
+        -- 100% = 360 x 400,  75% = 270 x 300,  50% = 180 x 200
+        minimum_width          = 180,
         minimum_height         = 200,
-        maximum_width          = 350,
+        maximum_width          = 180,
         -- gap_x                  = -400,
         -- gap_y                  = 110,
     -- Position moved via Alt+drag, saved via Ctrl+left-click
