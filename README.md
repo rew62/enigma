@@ -11,6 +11,11 @@ Run everything together or each component independently.
 
 ---
 
+![GitHub Stars](https://img.shields.io/github/stars/rew62/enigma?style=flat-square)
+![GitHub Forks](https://img.shields.io/github/forks/rew62/enigma?style=flat-square)
+![GitHub Issues](https://img.shields.io/github/issues/rew62/enigma?style=flat-square)
+![GitHub License](https://img.shields.io/github/license/rew62/enigma?style=flat-square)
+
 <img src="enigma.png" alt="Enigma Conky Suite" width="800">
 
 ## Overview
