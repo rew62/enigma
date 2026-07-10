@@ -123,7 +123,7 @@ local function draw_footer(cr)
     local GLYPH_RISE = "󰖜"
     local GLYPH_SET  = "󰖛"
 
-    local ext  = cairo_text_extents_t:create()
+    local ext  = cairo_text_extents_t:create(); tolua.takeownership(ext)
     local y    = FOOTER_Y
     local lx   = MAP_X                  -- left anchor
     local rx   = MAP_X + MAP_W          -- right anchor

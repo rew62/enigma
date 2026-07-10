@@ -231,7 +231,7 @@ local function kilroy(cr, w, h, data)
     cairo_set_font_size(cr, 60 * sx)
 
     local text = TEXT(data)
-    local ext  = cairo_text_extents_t:create()
+    local ext  = cairo_text_extents_t:create(); tolua.takeownership(ext)
     cairo_text_extents(cr, text, ext)
     cairo_move_to(cr,
         (w/2) - ext.width/2 - ext.x_bearing,

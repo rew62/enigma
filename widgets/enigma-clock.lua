@@ -338,7 +338,7 @@ local function clock(cr, w, h)
     local time_txt = os.date(TIME_FMT):gsub("^0", "")
     -- digits on top, AM/PM centered on the line below; block centered in circle
     local big, small = 14 * s, 8 * s
-    local ext = cairo_text_extents_t:create()
+    local ext = cairo_text_extents_t:create(); tolua.takeownership(ext)
     cairo_select_font_face(cr, FONT,
         CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
     for _, row in ipairs({ { time_txt, big, cy + 5 * s },

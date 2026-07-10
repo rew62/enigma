@@ -456,7 +456,7 @@ local function draw_horizon_line(cr, cx, cy)
     --local hi_str   = string.format("%.0f%s", hi_n, tu)
     local label_sz = 16
     local gap      = 8
-    local ext      = cairo_text_extents_t:create()
+    local ext      = cairo_text_extents_t:create(); tolua.takeownership(ext)
 
     cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
     cairo_set_font_size(cr, label_sz)
@@ -497,7 +497,7 @@ local function draw_cardinal_labels(cr, cx, cy, r, ARC_START, ARC_END)
   cairo_select_font_face(cr, "Sans", 0, 0)
   cairo_set_font_size(cr, HL.pt)
   cairo_set_source_rgba(cr, HL.color[1], HL.color[2], HL.color[3], HL.color[4])
-  local ext = cairo_text_extents_t:create()
+  local ext = cairo_text_extents_t:create(); tolua.takeownership(ext)
   for _, lbl in ipairs({ {"West", lx, ly}, {apex, mx, my}, {"East", rx, ry} }) do
     cairo_text_extents(cr, lbl[1], ext)
     cairo_move_to(cr, lbl[2] - (ext.width/2 + ext.x_bearing), lbl[3])
@@ -589,7 +589,7 @@ local function draw_moon_phase(cr, cx, cy)
   local y2  = y1 + MP.row2_dy       -- row 2: moon icon + rise/set times
   local lx  = cx - arc.r            -- left arc base  (x=115)
   local rx  = cx + arc.r            -- right arc base (x=455)
-  local ext = cairo_text_extents_t:create()
+  local ext = cairo_text_extents_t:create(); tolua.takeownership(ext)
 
   -- ── Row 1: phase name + illumination % centered (no icon) ────────────────
   local name_str = moon_name .. "  "
@@ -724,7 +724,7 @@ local function draw_weather_panel(cr)
   local div_y2 = y2 + 4
 
   local FONT = "Sans"
-  local ext  = cairo_text_extents_t:create()
+  local ext  = cairo_text_extents_t:create(); tolua.takeownership(ext)
 
   -- Inline helpers ----------------------------------------------------------
   local function rgba(c) cairo_set_source_rgba(cr, c[1], c[2], c[3], c[4]) end
@@ -852,7 +852,7 @@ local function draw_city_name(cr, cx)
   local city = craw ~= "N/A" and craw or ""
   if city == "" then return end
   local CL  = CFG.city_label
-  local ext = cairo_text_extents_t:create()
+  local ext = cairo_text_extents_t:create(); tolua.takeownership(ext)
   cairo_save(cr)
   cairo_select_font_face(cr, CL.font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
   cairo_set_font_size(cr, CL.size)
@@ -934,7 +934,7 @@ function conky_owm_sun_labels()
   local ss_time_r, ss_time_g, ss_time_b = hex_to_rgba("FFAB91", 1.0)
   local ss_icon_r, ss_icon_g, ss_icon_b = hex_to_rgba("FF7043", 1.0)
 
-  local ext = cairo_text_extents_t:create()
+  local ext = cairo_text_extents_t:create(); tolua.takeownership(ext)
 
   local function draw_label(anchor_x, y, segs)
     cairo_select_font_face(cr, NFNT, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)

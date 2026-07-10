@@ -242,7 +242,7 @@ end
 local function textc(cr,txt,x,y,font,size,weight,r,g,b,a)
     cairo_select_font_face(cr,font,CAIRO_FONT_SLANT_NORMAL,weight)
     cairo_set_font_size(cr,size)
-    local te=cairo_text_extents_t:create()
+    local te=cairo_text_extents_t:create(); tolua.takeownership(te)
     cairo_text_extents(cr,txt,te)
     cairo_move_to(cr, x-te.width/2-te.x_bearing, y-te.height/2-te.y_bearing)
     cairo_set_source_rgba(cr,r,g,b,a)
