@@ -4,6 +4,7 @@
 
 require 'cairo'
 pcall(require, 'cairo_xlib')  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
+local surface = require("surface")
 
 local FONT    = "Roboto"
 local SZ_HDR  = 9
@@ -248,9 +249,8 @@ end
 function conky_draw_gcal()
     if conky_window == nil then return end
 
-    local cs = cairo_xlib_surface_create(
-        conky_window.display, conky_window.drawable,
-        conky_window.visual, conky_window.width, conky_window.height)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
 
     local days = _cache.days or parse(run_gcalcli())
@@ -300,5 +300,5 @@ function conky_draw_gcal()
     end
 
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end

@@ -16,7 +16,8 @@ local CACHE_FILE = CACHE_DIR .. "/quotes.json"
 local CONF_DIR  = ENIGMA_DIR .. "/widgets"
 
 package.path = ENIGMA_DIR .. "/scripts/?.lua;" .. package.path
-local env = require("env")
+local env     = require("env")
+local surface = require("surface")
 
 -- Yahoo's chart endpoint is keyless and uncapped -- this TTL just keeps it
 -- from being hammered on every 1s redraw.
@@ -272,9 +273,8 @@ function conky_draw_indices2()
 
     local symbols = YAHOO_SYMBOLS
 
-    local cs = cairo_xlib_surface_create(
-        conky_window.display, conky_window.drawable,
-        conky_window.visual,  conky_window.width, conky_window.height)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
 
     -- ── header row: "Indices" | "Price" | "Change" ───────────────────────
@@ -367,5 +367,5 @@ function conky_draw_indices2()
     cairo_show_text(cr, "updated: ")
 
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end

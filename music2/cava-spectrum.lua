@@ -66,6 +66,10 @@ v3.2 (07 jun 2026)   Rewrote script, uses way less cpu usage on reading cava dat
 require 'cairo'
 pcall(require, 'cairo_xlib')  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
 
+package.path = package.path .. ";"
+    .. (os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma") .. "/scripts/?.lua"
+local surface = require("surface")
+
 
 -- Scriptname
 local SCRIPT_NAME = string.gsub(string.match(debug.getinfo(1, 'S').short_src, "[^/]+$"), '.lua', '')
@@ -328,7 +332,8 @@ function conky_main_bars(arg)
 
 
    -- SETUP CAIRO CONTEXT
-   local cs = cairo_xlib_surface_create(conky_window.display, conky_window.drawable, conky_window.visual, conky_window.width, conky_window.height)
+   local cs, owns = surface.get()
+   if cs == nil then return "" end
    cr = cairo_create(cs)
 
 
@@ -385,7 +390,7 @@ function conky_main_bars(arg)
 
   -- CLEANUP
   cairo_destroy(cr)
-  cairo_surface_destroy(cs)
+  surface.put(cs, owns)
   return ""
 end
 

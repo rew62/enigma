@@ -10,7 +10,8 @@ local OWM_JSON   = CACHE_DIR .. "/owm_current.json"
 local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma"
 
 package.path = ENIGMA_DIR .. "/scripts/?.lua;" .. package.path
-local env = require("env")
+local env     = require("env")
+local surface = require("surface")
 
 local MAP_X  = 2
 local MAP_Y  = 2
@@ -193,9 +194,8 @@ function conky_draw_worldmap()
     load_dots()
     load_location()
 
-    local cs = cairo_xlib_surface_create(
-        conky_window.display, conky_window.drawable,
-        conky_window.visual,  conky_window.width, conky_window.height)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
 
     -- clip everything to the map rectangle
@@ -280,5 +280,5 @@ function conky_draw_worldmap()
 
     draw_footer(cr)
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end

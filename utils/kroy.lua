@@ -32,7 +32,8 @@ local function try_require(mod)
     return result
 end
 
-local window = try_require("window")
+local window  = try_require("window")
+local surface = try_require("surface")
 
 -- Art spans design-X 340–1060; X() subtracts the offset so the window hugs it.
 local DX = 340
@@ -270,17 +271,12 @@ function conky_draw_killroy()
         uptime   = conky_parse("${uptime}"),
     }
 
-    local cs = cairo_xlib_surface_create(
-        conky_window.display,
-        conky_window.drawable,
-        conky_window.visual,
-        conky_window.width,
-        conky_window.height
-    )
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
     kilroy(cr, conky_window.width, conky_window.height, data)
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end
 
 -- ─────────────────────────────────────────────────────────────────────────────

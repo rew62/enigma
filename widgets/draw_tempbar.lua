@@ -10,6 +10,8 @@ pcall(require, 'cairo_xlib')  -- conky 1.22+ splits xlib fns into cairo_xlib; no
 package.path = package.path .. ";./?.lua;../?.lua;"
     .. (os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma") .. "/scripts/?.lua"
 
+local surface = require("surface")
+
 local SFNT             = "Sans"
 local FONT_EMOJI       = "Noto Sans Symbols2"
 local TODAY_HIGH_CACHE = (os.getenv("CONKY_CACHE_DIR") or "/dev/shm/conky") .. "/today_high.cache"
@@ -236,12 +238,11 @@ end
 
 function conky_weather_main()
     if conky_window == nil then return end
-    local cs = cairo_xlib_surface_create(
-        conky_window.display, conky_window.drawable,
-        conky_window.visual,  conky_window.width, conky_window.height)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
     local ok, err = pcall(do_draw, cr)
     if not ok then print("tempbar draw error: " .. tostring(err)) end
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end

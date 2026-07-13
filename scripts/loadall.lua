@@ -9,7 +9,8 @@ package.path = "./?.lua;../?.lua;./scripts/?.lua;../scripts/?.lua;" .. package.p
 
 require("draw_bg")    -- defines global try_require(), draw_bg(), draw_dividers()
 require("functions")  -- defines global conky_fmtpct(), conky_fmtspeed()
-local env = require("env")
+local env     = require("env")
+local surface = require("surface")
 
 -- ── per-widget setup functions ──────────────────────────────────────────────
 -- For widgets too custom for the generic cfg.runner case below (their own
@@ -65,16 +66,15 @@ local function setup_disk()
 
         draw_bg()
 
-        local cs = cairo_xlib_surface_create(
-            conky_window.display, conky_window.drawable,
-            conky_window.visual, conky_window.width, conky_window.height)
+        local cs, owns = surface.get()
+        if cs == nil then return end
         local cr = cairo_create(cs)
 
         disk.update(dev)
         disk.draw(cr, conky_window.width, conky_window.height)
 
         cairo_destroy(cr)
-        cairo_surface_destroy(cs)
+        surface.put(cs, owns)
 
         log_window_size()
     end
@@ -133,9 +133,8 @@ local function setup_network()
 
         draw_bg()
 
-        local cs = cairo_xlib_surface_create(
-            conky_window.display, conky_window.drawable,
-            conky_window.visual, conky_window.width, conky_window.height)
+        local cs, owns = surface.get()
+        if cs == nil then return end
         local cr = cairo_create(cs)
 
         local active_iface = iface
@@ -150,7 +149,7 @@ local function setup_network()
         net.draw(cr, conky_window.width, conky_window.height)
 
         cairo_destroy(cr)
-        cairo_surface_destroy(cs)
+        surface.put(cs, owns)
 
         log_window_size()
     end
@@ -182,16 +181,15 @@ local function setup_system()
 
         draw_bg()
 
-        local cs = cairo_xlib_surface_create(
-            conky_window.display, conky_window.drawable,
-            conky_window.visual, conky_window.width, conky_window.height)
+        local cs, owns = surface.get()
+        if cs == nil then return end
         local cr = cairo_create(cs)
 
         sys.update()
         sys.draw(cr, conky_window.width, conky_window.height)
 
         cairo_destroy(cr)
-        cairo_surface_destroy(cs)
+        surface.put(cs, owns)
 
         log_window_size()
     end
@@ -237,13 +235,12 @@ local function setup_weather(cfg)
         local draw_func = _G[cfg.draw_fn]
         if draw_func then draw_func() end
 
-        local cs = cairo_xlib_surface_create(
-            conky_window.display, conky_window.drawable,
-            conky_window.visual, conky_window.width, conky_window.height)
+        local cs, owns = surface.get()
+        if cs == nil then return end
         local cr = cairo_create(cs)
         draw_dividers(cr, conky_window.width, conky_window.height)
         cairo_destroy(cr)
-        cairo_surface_destroy(cs)
+        surface.put(cs, owns)
 
         log_window_size()
     end
@@ -263,13 +260,12 @@ local function setup_terminator()
         draw_bg()
         conky_draw_worldmap()
 
-        local cs = cairo_xlib_surface_create(
-            conky_window.display, conky_window.drawable,
-            conky_window.visual, conky_window.width, conky_window.height)
+        local cs, owns = surface.get()
+        if cs == nil then return end
         local cr = cairo_create(cs)
         draw_dividers(cr, conky_window.width, conky_window.height)
         cairo_destroy(cr)
-        cairo_surface_destroy(cs)
+        surface.put(cs, owns)
 
         log_window_size()
     end
@@ -388,13 +384,12 @@ if cfg then
             local draw_fn = cfg.draw_fn and _G[cfg.draw_fn]
             if draw_fn then draw_fn() end
 
-            local cs = cairo_xlib_surface_create(
-                conky_window.display, conky_window.drawable,
-                conky_window.visual, conky_window.width, conky_window.height)
+            local cs, owns = surface.get()
+            if cs == nil then return end
             local cr = cairo_create(cs)
             draw_dividers(cr, conky_window.width, conky_window.height)
             cairo_destroy(cr)
-            cairo_surface_destroy(cs)
+            surface.put(cs, owns)
 
             log_window_size()
         end

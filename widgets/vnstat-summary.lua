@@ -16,7 +16,8 @@ do
     end
 end
 
-local env = require("env")
+local env     = require("env")
+local surface = require("surface")
 local NET_IFACE = env.get("INTERFACE_NAME", "wlp2s0")
 
 -- ── layout ──────────────────────────────────────────────────────────────────
@@ -101,9 +102,8 @@ end
 function conky_draw_vnstat_summary()
     if conky_window == nil then return end
 
-    local cs = cairo_xlib_surface_create(
-        conky_window.display, conky_window.drawable,
-        conky_window.visual,  conky_window.width, conky_window.height)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
 
     local iface_name = NET_IFACE
@@ -151,7 +151,7 @@ function conky_draw_vnstat_summary()
         cairo_select_font_face(cr, "Rubik", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
         set_col(cr, COL.div)
         dl(cr, M, 36, "no data")
-        cairo_destroy(cr); cairo_surface_destroy(cs); return
+        cairo_destroy(cr); surface.put(cs, owns); return
     end
 
     -- ── accumulate period totals ──────────────────────────────────────────
@@ -232,5 +232,5 @@ function conky_draw_vnstat_summary()
     cairo_show_text(cr, "updated: ")
 
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end

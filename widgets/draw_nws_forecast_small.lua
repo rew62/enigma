@@ -8,6 +8,8 @@ pcall(require, 'cairo_xlib')  -- conky 1.22+ splits xlib fns into cairo_xlib; no
 package.path = package.path .. ";./?.lua;../?.lua;"
     .. (os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma") .. "/scripts/?.lua"
 
+local surface = require("surface")
+
 local cjson = nil
 local ok, lib = pcall(require, "cjson")
 if ok then
@@ -271,12 +273,11 @@ end
 
 function conky_weather_main()
     if conky_window == nil then return end
-    local cs = cairo_xlib_surface_create(
-        conky_window.display, conky_window.drawable,
-        conky_window.visual,  conky_window.width, conky_window.height)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
     local ok, err = pcall(do_draw, cr)
     if not ok then print("forecast-small draw error: " .. tostring(err)) end
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end

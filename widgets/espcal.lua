@@ -33,7 +33,8 @@ local function try_require(mod)
 end
 
 try_require("draw_bg")
-local window = try_require("window")
+local window  = try_require("window")
+local surface = try_require("surface")
 
 -- Apply WIDGET_CONFIG globals (mirrors loadall.lua dispatch; espcal is self-contained and skips loadall)
 do
@@ -151,7 +152,8 @@ function conky_draw_espcal()
 
     local cw    = conky_window
     local w, h  = cw.width, cw.height
-    local cs    = cairo_xlib_surface_create(cw.display, cw.drawable, cw.visual, w, h)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr    = cairo_create(cs)
 
     local now    = os.date("*t")
@@ -252,7 +254,7 @@ function conky_draw_espcal()
     draw_dividers(cr, w, h)
 
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end
 
 -- ─────────────────────────────────────────────────────────────────────────────

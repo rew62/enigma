@@ -16,6 +16,7 @@ end
 try_require("draw_bg")
 try_require("nowplaying")
 try_require("volume")
+local surface = require("surface")
 
 -- ============================================================
 -- conky_main  (lua_draw_hook_pre)
@@ -28,9 +29,8 @@ function conky_main()
     draw_bg()
 
     -- shared Cairo surface for all remaining lua drawing
-    local cs = cairo_xlib_surface_create(
-        conky_window.display, conky_window.drawable,
-        conky_window.visual, conky_window.width, conky_window.height)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
 
     -- 2. Now Playing section  (top of window, y-offset = 15)
@@ -40,7 +40,7 @@ function conky_main()
     draw_volume(cr, 240)
 
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 
     log_window_size()
 end

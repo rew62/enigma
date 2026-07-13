@@ -11,6 +11,8 @@
 -- v1 2026-07-04 @rew62
 if not conky then require 'cairo'; pcall(require, 'cairo_xlib') end  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
 
+local surface = require("surface")
+
 local HEIGHTS_DIR = "/dev/shm/enigma/heights"
 
 local _size_logged = false
@@ -69,7 +71,8 @@ function draw_bg(w, h)
     if bg_a <= 0 then return end
     local _bc = (type(bg_color) == "number") and bg_color or 0x1e1e2e
     local cw = conky_window
-    local cs = cairo_xlib_surface_create(cw.display, cw.drawable, cw.visual, cw.width, cw.height)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
     cairo_set_operator(cr, CAIRO_OPERATOR_DEST_OVER)
     cairo_set_source_rgba(cr,
@@ -80,5 +83,5 @@ function draw_bg(w, h)
     cairo_rectangle(cr, 0, 0, w or cw.width, h or cw.height)
     cairo_fill(cr)
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end

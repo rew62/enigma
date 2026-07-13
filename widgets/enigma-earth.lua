@@ -8,12 +8,13 @@
 -- when cairo bindings become available.
 -- v1 2026-07-04 @rew62
 
-local window
+local window, surface
 
 if not conky then
     require 'cairo'
     pcall(require, 'cairo_xlib')  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
-    window = require("window")  -- already try_require()'d by scripts/loadall.lua
+    window  = require("window")  -- already try_require()'d by scripts/loadall.lua
+    surface = require("surface")
 end
 
 local RC_DIR = debug.getinfo(1,'S').source:match("@?(.*/)") or "./"
@@ -108,16 +109,15 @@ end
 
 function conky_draw_earth2()
     if conky_window == nil then return end
-    local cs = cairo_xlib_surface_create(
-        conky_window.display, conky_window.drawable,
-        conky_window.visual, conky_window.width, conky_window.height)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
 
     draw_globe(cr)
     draw_timestamp(cr)
 
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 
     log_window_size()
 end
@@ -140,8 +140,8 @@ if conky then
 
     -- Size & position (placeholder — adjust in etmux)
         alignment              = 'top_right',
-        gap_x                  = 400,
-        gap_y                  = 1000,
+        gap_x                  = 390,
+        gap_y                  = 225,
         minimum_width          = 150,
         minimum_height         = 150,
         maximum_width          = 150,

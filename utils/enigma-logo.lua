@@ -4,6 +4,11 @@
 
 if not conky then require 'cairo'; pcall(require, 'cairo_xlib') end  -- conky 1.22+ splits xlib fns into cairo_xlib; no-op on older builds
 
+local _logo_dir = debug.getinfo(1,'S').source:match("@?(.*/)") or "./"
+package.path = _logo_dir .. "../scripts/?.lua;" .. package.path
+    .. ";" .. (os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma") .. "/scripts/?.lua"
+local surface = require("surface")
+
 local CHAR_GAP = 20   -- extra pixels of space inserted between each character
 local ROTATION = 90    -- degrees CCW; 90 → portrait (logo reads upward), matches enigma.lua
 
@@ -293,13 +298,12 @@ function conky_draw_enigma_logo8()
             conky_config:match("([^/]+)$"), conky_window.width, conky_window.height))
         _size_logged = true
     end
-    local cs = cairo_xlib_surface_create(
-        conky_window.display, conky_window.drawable,
-        conky_window.visual, conky_window.width, conky_window.height)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
     draw_enigma_logo8(cr)
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end
 
 if conky then

@@ -333,6 +333,7 @@ end
 
 local has_cairo = pcall(require, "cairo")
 local window    = require("window")  -- already try_require()'d by scripts/loadall.lua
+local surface   = require("surface")
 
 -- =========================================================================
 -- Sub-drawing functions (called from conky_owm_draw_horizon)
@@ -873,9 +874,8 @@ function conky_owm_draw_horizon()
 
   if type(weather_update) == "function" then weather_update() end
 
-  local cs = cairo_xlib_surface_create(
-    conky_window.display, conky_window.drawable,
-    conky_window.visual, conky_window.width, conky_window.height)
+  local cs, owns = surface.get()
+  if cs == nil then return "" end
   local cr = cairo_create(cs)
   cairo_save(cr)
   cairo_new_path(cr)
@@ -894,7 +894,7 @@ function conky_owm_draw_horizon()
 
   cairo_restore(cr)
   cairo_destroy(cr)
-  cairo_surface_destroy(cs)
+  surface.put(cs, owns)
 
   log_window_size()
   return ""
@@ -908,9 +908,8 @@ end
 function conky_owm_sun_labels()
   if not has_cairo or not conky_window then return "" end
 
-  local cs = cairo_xlib_surface_create(
-    conky_window.display, conky_window.drawable,
-    conky_window.visual, conky_window.width, conky_window.height)
+  local cs, owns = surface.get()
+  if cs == nil then return "" end
   local cr = cairo_create(cs)
   cairo_save(cr)
 
@@ -969,7 +968,7 @@ function conky_owm_sun_labels()
   cairo_new_path(cr)
   cairo_restore(cr)
   cairo_destroy(cr)
-  cairo_surface_destroy(cs)
+  surface.put(cs, owns)
   return ""
 end
 

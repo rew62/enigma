@@ -8,7 +8,8 @@ local CACHE_TTL = 120
 local CONF_DIR  = ENIGMA_DIR .. "/widgets"
 
 package.path = ENIGMA_DIR .. "/scripts/?.lua;" .. package.path
-local env = require("env")
+local env     = require("env")
+local surface = require("surface")
 
 -- ── layout ──────────────────────────────────────────────────────────────────
 local M   = 4
@@ -140,9 +141,8 @@ function conky_draw_stocks()
     local key     = load_api_key()
     local symbols = read_symbols()
 
-    local cs = cairo_xlib_surface_create(
-        conky_window.display, conky_window.drawable,
-        conky_window.visual,  conky_window.width, conky_window.height)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
 
     -- ── header row: "Stocks" | "Price" | "Change" ────────────────────────
@@ -166,7 +166,7 @@ function conky_draw_stocks()
         cairo_set_font_size(cr, 9)
         set_col(cr, COL.neg)
         dl(cr, M, 33, #symbols == 0 and "no symbols.conf" or "no API key")
-        cairo_destroy(cr); cairo_surface_destroy(cs); return
+        cairo_destroy(cr); surface.put(cs, owns); return
     end
 
     refresh_stale(symbols, key)
@@ -198,5 +198,5 @@ function conky_draw_stocks()
     end
 
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end

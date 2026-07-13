@@ -18,7 +18,8 @@ package.path = _dir .. "?.lua;"
     .. ENIGMA_DIR .. "/widgets/?.lua;"
     .. package.path
 
-local env = require("env")
+local env     = require("env")
+local surface = require("surface")
 
 -- ── State ─────────────────────────────────────────────────────────────────────
 
@@ -338,9 +339,8 @@ function conky_main()
 
     log_window_size()
 
-    local cs = cairo_xlib_surface_create(
-        conky_window.display, conky_window.drawable,
-        conky_window.visual,  conky_window.width, conky_window.height)
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
     local w  = conky_window.width
     local h  = conky_window.height
@@ -384,7 +384,7 @@ function conky_main()
     end
 
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end
 
 -- ── Embedded conky config (only evaluated during the -c parse pass) ───────────

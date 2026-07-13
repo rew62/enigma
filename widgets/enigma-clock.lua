@@ -28,7 +28,8 @@ local function try_require(mod)
     return result
 end
 
-local window = try_require("window")
+local window  = try_require("window")
+local surface = try_require("surface")
 
 -- ── User config ───────────────────────────────────────────────────────────────
 local TIME_FMT   = "%I:%M"       -- digits; zero-stripped, "a"/"p" appended below
@@ -363,17 +364,12 @@ function conky_draw_enigma_clock()
         _size_logged = true
     end
 
-    local cs = cairo_xlib_surface_create(
-        conky_window.display,
-        conky_window.drawable,
-        conky_window.visual,
-        conky_window.width,
-        conky_window.height
-    )
+    local cs, owns = surface.get()
+    if cs == nil then return end
     local cr = cairo_create(cs)
     clock(cr, conky_window.width, conky_window.height)
     cairo_destroy(cr)
-    cairo_surface_destroy(cs)
+    surface.put(cs, owns)
 end
 
 -- ─────────────────────────────────────────────────────────────────────────────
