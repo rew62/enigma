@@ -96,6 +96,10 @@ See `.env-example` for the format reference.
 * `ticker.rc` — stock price table; requires a FinnHub API key (free at https://www.finnhub.io/). Symbol list is `widgets/stock-symbols.conf`, shared with `indices2.rc`'s expanded view below (same cache, so running both doesn't double the API calls).
 * `indices2.rc` — market index display; top section pulls real index values from Yahoo's keyless chart API (symbol list is inlined in `widgets/indices2.lua`'s `YAHOO_SYMBOLS`), Left-click expands to the individual stocks in `stock-symbols.conf` via FinnHub.
 
+### Horoscope Widget
+
+* `horoscope.rc` — daily horoscope text from the keyless [Ohmanda API](https://ohmanda.com/api/horoscope/), fetched once per sign per day into a tmpfs cache. Starts on the sign whose date range covers today; left-click cycles through the other eleven.
+
 ### Arc Widget
 
 * Includes current forecast and moon phase rendering
@@ -180,6 +184,7 @@ With no arguments it launches the `default` group. Use `etmux help` to list all 
 | `es` | `widgets/system.rc` | System monitor |
 | `ev` | `widgets/vnstat-summary.rc` | vnstat bandwidth summary |
 | `g` | `widgets/gcal.rc` | Google Calendar month-view |
+| `h` | `widgets/horoscope.rc` | Daily horoscope (click cycles signs) |
 | `m` | `music2/nowplaying.rc` | Now Playing (music2) |
 | `mp` | `widgets/playerctl.rc` | Now Playing sidepanel |
 | `msi` | `widgets/song-info.rc` | Song info (legacy) |
@@ -244,6 +249,7 @@ A few widgets layer extra click behavior on top of that baseline:
 |---|---|---|
 | `disk.rc` | `Shift` + Left-click | Toggle disk I/O graph on/off |
 | `eq.rc` | Left-click / Right-click | Next / previous spectrum preset |
+| `horoscope.rc` | Left-click | Cycle to the next zodiac sign |
 | `indices2.rc` | Left-click | Toggle expanded symbol view |
 | `nsd.lua` | `Shift` + Left-click | Cycle views: net → sys → disk |
 | `nsd.lua` | `Shift` + Right-click | Toggle combo summary (all three, no graphs) |
@@ -346,6 +352,8 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
     ├── espcal.lua                      [ec]  Lua calendar
     ├── gcal.lua                              gcal renderer module
     ├── gcal.rc                         [g]   Google Calendar month-view
+    ├── horoscope.lua                         horoscope renderer/fetcher module
+    ├── horoscope.rc                    [h]   Daily horoscope (click cycles signs)
     ├── indices2.lua                          indices renderer/fetcher module
     ├── indices2.rc                     [si]  Stock indices
     ├── multimon.rc                     [c]   Multi-month calendar

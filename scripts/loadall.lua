@@ -329,6 +329,16 @@ local WIDGETS = {
             return false
         end,
     },
+    ["horoscope.rc"] = {
+        modules = { "window", "horoscope" }, runner = true, draw_fn = "conky_draw_horoscope",
+        mouse_hook = function(event, window)
+            if window.handle_mouse(event) then return true end
+            if event.type == "button_down" and event.button == "left" then
+                return horoscope_cycle()
+            end
+            return false
+        end,
+    },
     -- content comes entirely from conky.text (execi'd shell scripts); window
     -- move/kill is disabled via WIDGET_CONFIG in settings.lua
     ["song-info.rc"] = { modules = { "window" }, runner = true },

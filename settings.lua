@@ -52,6 +52,7 @@ WIDGET_CONFIG = {
     ["network.rc"]            = { divider = "top,bottom", globals = { WINDOW_MOUSE_HOOK = false } },
     ["system.rc"]             = { divider = "top,bottom", globals = { WINDOW_MOUSE_HOOK = false } },
     ["indices2.rc"]           = { divider = "top,bottom", globals = { INDICES2_EXPANDED = false } },
+    ["horoscope.rc"]          = { divider = "top,bottom" },
     ["song-info.rc"]          = { globals = { WINDOW_MOUSE_HOOK = false } }, -- content-only; no window to drag
     ["playerctl.rc"]          = { globals = { WINDOW_MOUSE_HOOK = false } },
     ["ticker.rc"]             = { divider = "top,bottom" },
