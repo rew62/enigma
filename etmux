@@ -45,11 +45,13 @@ MAP[mp]="widgets|playerctl.rc"
 MAP[msi]="widgets|song-info.rc"
 MAP[r]="~/.conky/alien/rss|rss.rc"
 MAP[sd]="widgets|solar_dial2.lua"
+MAP[sd3]="widgets|solar_dial3.lua"
 MAP[si]="widgets|indices2.rc"
 MAP[st]="widgets|ticker.rc"
 MAP[t]="widgets|enigma-clock.lua"
 MAP[wf]="widgets|nws_forecast_small.rc"
 MAP[wt]="widgets|tempbar.rc"
+MAP[xn]="widgets|xena-net.lua"
 MAP[zen]="utils|enigma-logo.lua"
 MAP[zkr]="utils|kroy.lua"
 MAP[x-au-m]="~/.conky/conky-aurora/moon|moon.rc"
@@ -60,14 +62,14 @@ declare -A NAMED_GROUPS
 
 NAMED_GROUPS[default]="c e ec ed em en es ev g m si wf wt zen zkr"
 NAMED_GROUPS[stack1]="a sd st r t zkr"
-NAMED_GROUPS[extras]="a sd t zen zkr"
+NAMED_GROUPS[extras]="a sd t zen zkr e"
 
 # --- COLUMN groups: auto-stacked vertical columns ---
 # Any group whose name starts with "column" is launched as a vertical stack:
 # each widget gets -x/-y overrides so it sits COLUMN_GAP px below the one
 # above it, using measured heights. Everything else launches at native rc
 # coordinates. Widget order in the group = top-to-bottom screen order.
-NAMED_GROUPS[column1]="ec em wt wf c ecg ev e"
+NAMED_GROUPS[column1]="ec em wt wf c ecg ev"
 NAMED_GROUPS[column2]="m si g"
 
 COLUMN_GAP=5                          # px between stacked widgets
@@ -222,11 +224,13 @@ show_help() {
     echo "    msi         Song Info (legacy)"
     echo "    r           RSS (alien suite)"
     echo "    sd          Solar Dial Ring              (200px)"
+    echo "    sd3         Solar Dial + System Ring     (270px)"
     echo "    si          Stock Indices                (150px)"
     echo "    st          Stocks                       (150px)"
     echo "    t           Clock (sweep rings)"
     echo "    wf          Weather Forecast             (150px)"
     echo "    wt          Weather Temperature Bar      (150px)"
+    echo "    xn          Xena Network (Shift+click toggles iface)"
     echo "    zen         ENIGMA logotype"
     echo "    zkr         killroy was here!"
     echo "    x-au-m      Aurora Moon"

@@ -189,11 +189,13 @@ With no arguments it launches the `default` group. Use `etmux help` to list all 
 | `mp` | `widgets/playerctl.rc` | Now Playing sidepanel |
 | `msi` | `widgets/song-info.rc` | Song info (legacy) |
 | `sd` | `widgets/solar_dial2.lua` | Solar dial ring |
+| `sd3` | `widgets/solar_dial3.lua` | Solar dial + system meter ring |
 | `si` | `widgets/indices2.rc` | Stock indices |
 | `st` | `widgets/ticker.rc` | Stock price table |
 | `t` | `widgets/enigma-clock.lua` | Minimal ring clock |
 | `wf` | `widgets/nws_forecast_small.rc` | NWS forecast strip |
 | `wt` | `widgets/tempbar.rc` | Temperature bar |
+| `xn` | `widgets/xena-net.lua` | Xena-style network speeds (Shift+click toggles interface) |
 | `zen` | `utils/enigma-logo.lua` | ENIGMA logotype |
 | `zkr` | `utils/kroy.lua` | Killroy Was Here |
 
@@ -364,6 +366,7 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
     ├── nws_forecast_small.rc           [wf]  NWS forecast strip
     ├── playerctl.rc                    [mp]  Now Playing sidepanel
     ├── solar_dial2.lua                 [sd]  Solar dial ring
+    ├── solar_dial3.lua                 [sd3] Solar dial + system meter ring
     ├── song-info.rc                    [msi] Song info (legacy)
     ├── stock-symbols.conf                    shared symbol list (ticker + indices2 expanded)
     ├── sys.lua                               system module (graph + stats)
@@ -374,7 +377,8 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
     ├── vnstat-summary.lua                    vnstat renderer module
     ├── vnstat-summary.rc               [ev]  vnstat bandwidth summary
     ├── worldmap.lua                          worldmap renderer module
-    └── worldmap.rc                     [em]  Day/night world map
+    ├── worldmap.rc                     [em]  Day/night world map
+    └── xena-net.lua                    [xn]  Xena-style network speeds
 ```
 
 ---
