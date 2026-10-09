@@ -161,10 +161,10 @@ With no arguments it launches the `default` group. Use `etmux help` to list all 
 
 | Group | Codes |
 |---|---|
-| `default` | `c e ec ed em en es ev g m si wf wt zen` |
+| `default` | `c e ec ed em en es ev g m si wf wt zen zkr` |
 | `stack1` | `a sd st r t zkr` |
-| `extras` | `a sd r t zen zkr` |
-| `column1` | `ec em wt wf c ecg ev e` (auto-stacked, see below) |
+| `extras` | `a sd3 t zen zkr e` |
+| `column1` | `ec em wt wf c ecg ev` (auto-stacked, see below) |
 | `column2` | `m si g` (auto-stacked, see below) |
 
 **Widget Codes:**
@@ -195,7 +195,7 @@ With no arguments it launches the `default` group. Use `etmux help` to list all 
 | `t` | `widgets/enigma-clock.lua` | Minimal ring clock |
 | `wf` | `widgets/nws_forecast_small.rc` | NWS forecast strip |
 | `wt` | `widgets/tempbar.rc` | Temperature bar |
-| `xn` | `widgets/xena-net.lua` | Xena-style network speeds (Shift+click toggles interface) |
+| `xn` | `widgets/xena-net2.lua` | Xena-style network speeds (Shift+click toggles interface) |
 | `zen` | `utils/enigma-logo.lua` | ENIGMA logotype |
 | `zkr` | `utils/kroy.lua` | Killroy Was Here |
 
@@ -378,7 +378,7 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
     ├── vnstat-summary.rc               [ev]  vnstat bandwidth summary
     ├── worldmap.lua                          worldmap renderer module
     ├── worldmap.rc                     [em]  Day/night world map
-    └── xena-net.lua                    [xn]  Xena-style network speeds
+    └── xena-net2.lua                   [xn]  Xena-style network speeds (idle-fading arrows)
 ```
 
 ---

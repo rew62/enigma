@@ -1,5 +1,6 @@
--- xena-net.lua — network section lifted from the Xena bar  (conky -c xena-net.lua)
+-- xena-net2.lua — network section lifted from the Xena bar  (conky -c xena-net2.lua)
 --   ▲ upspeed / ▼ downspeed arrows + totals, Xena's #dddddd text styling
+--   Arrows are faint while idle, opaque while that direction has traffic
 --   Background comes from the shared theme (settings.lua + scripts/draw_bg.lua)
 --   Shift+left-click → toggle the interface down/up
 --   While down: 2 px red border (and a red DOWN tag), otherwise none
@@ -12,7 +13,7 @@
 --
 -- Lua functions first; conky.config/text guarded by `if conky` so this file
 -- is also safe to load via lua_load without re-executing the config block.
--- v1 2026-07-09 @rew62
+-- v1 2026-10-08 @rew62
 
 -- During config parse the `conky` global exists; cairo bindings aren't
 -- registered yet so we skip the require.  lua_load re-runs this file
@@ -27,7 +28,7 @@ package.path     = ENIGMA_DIR .. "/scripts/?.lua;" .. package.path
 local surface
 if not conky then
     local ok, err = pcall(require, "draw_bg")
-    if not ok then print("[xena-net] cannot load draw_bg: " .. tostring(err)); os.exit(1) end
+    if not ok then print("[xena-net2] cannot load draw_bg: " .. tostring(err)); os.exit(1) end
     surface = require("surface")
 end
 
@@ -44,6 +45,7 @@ local RED_RGBA   = { 0.85, 0.15, 0.15, 1 }     -- down-state border / tag
 local UP_RGBA    = { 0.941, 0.333, 0.333, 1 }  -- tx red    0xf05555
 local DOWN_RGBA  = { 0.376, 0.784, 0.533, 1 }  -- rx green  0x60c888
 local LABEL_RGBA = { 0.176, 0.620, 0.918, 1 }  -- head blue 0x2D9EEA
+local IDLE_ALPHA = 0.2                         -- arrow alpha when that direction is idle
 
 local W, H       = 150, 66
 
@@ -191,8 +193,9 @@ local function draw_net(cr, w, h)
     local parsed = conky_parse(string.format(
         "${upspeedf %s}|${downspeedf %s}", IFACE, IFACE))
     local upf, downf = parsed:match("([^|]*)|([^|]*)")
-    local upn, upu = fmt_kib(tonumber(upf) or 0)
-    local dnn, dnu = fmt_kib(tonumber(downf) or 0)
+    upf, downf = tonumber(upf) or 0, tonumber(downf) or 0
+    local upn, upu = fmt_kib(upf)
+    local dnn, dnu = fmt_kib(downf)
     local tun, tuu = fmt_kib(read_stat("tx_bytes") / 1024)
     local tdn, tdu = fmt_kib(read_stat("rx_bytes") / 1024)
 
@@ -206,11 +209,13 @@ local function draw_net(cr, w, h)
     end
 
     -- ── Rows 2/3: ▲ upspeed · total, ▼ downspeed · total ─────────────────────
-    set_rgba(cr, UP_RGBA)
-    -- up-pointing triangles read optically smaller; oversize it 1 px
-    arrow(cr, 12.5, 38, 10, true)
-    set_rgba(cr, DOWN_RGBA)
-    arrow(cr, 13, 57, 9, false)
+    -- each arrow is opaque only while its direction is moving traffic
+    cairo_set_source_rgba(cr, UP_RGBA[1], UP_RGBA[2], UP_RGBA[3],
+                          upf > 0 and 1 or IDLE_ALPHA)
+    arrow(cr, 10.5, 40, 13, true)
+    cairo_set_source_rgba(cr, DOWN_RGBA[1], DOWN_RGBA[2], DOWN_RGBA[3],
+                          downf > 0 and 1 or IDLE_ALPHA)
+    arrow(cr, 10, 61, 13, false)
 
     -- number right-aligned to a fixed column, unit left-aligned after it:
     -- the decimal point and unit stay put, digits grow leftward
@@ -230,7 +235,7 @@ end
 
 local _size_logged = false
 
-function conky_draw_xena_net()
+function conky_draw_xena_net2()
     if conky_window == nil then return end
 
     draw_bg()
@@ -266,14 +271,14 @@ end
 if conky then
     conky.config = {
         -- settings.lua first: publishes bg_color/bg_alpha before draw_bg() reads them
-        lua_load          = ENIGMA_DIR .. '/settings.lua ' .. ENIGMA_DIR .. '/widgets/xena-net.lua',
-        lua_draw_hook_pre = 'draw_xena_net',
+        lua_load          = ENIGMA_DIR .. '/settings.lua ' .. ENIGMA_DIR .. '/widgets/xena-net2.lua',
+        lua_draw_hook_pre = 'draw_xena_net2',
         lua_mouse_hook    = 'mouse_hook',
 
         background             = false,
         own_window             = true,
         own_window_type        = 'normal',
-        own_window_title       = 'xena-net',
+        own_window_title       = 'xena-net2',
         own_window_hints       = 'undecorated,below,sticky,skip_taskbar,skip_pager',
         own_window_argb_visual = true,
         own_window_argb_value  = 0,
