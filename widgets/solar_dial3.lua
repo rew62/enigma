@@ -27,7 +27,7 @@ local surface = try_require("surface")
 
 -- ── Configuration ─────────────────────────────────────────────────────────
 local C = {
-    show_meters = true,   -- system meter ring on at startup; Shift+left-click toggles it
+    show_meters = false,  -- system meter ring off at startup; Shift+left-click toggles it
 
     lat = 40.7128, lon = -74.0060,   -- overridden by .env
 
