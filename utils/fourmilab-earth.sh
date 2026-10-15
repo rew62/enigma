@@ -46,8 +46,18 @@ echo "[$NOW] Downloading and processing image..."
 # scale once here to the widget's exact content size (enigma-earth.lua's
 # SIZE - 2*MARGIN = 146): the widget then blits 1:1 instead of decoding and
 # rescaling a 600x600 RGBA (1.4 MB) every frame.
+# Old: keyed out black (ragged rim on JPEG noise) and -resize fell back to the
+# soft Mitchell filter because the image had alpha.
+# if wget --timeout="$WGET_TIMEOUT" --tries=2 -O - "$URL" | \
+#    convert - -fuzz 10% -transparent black -resize 146x146 -strip "$TEMP_FILE"; then
+# New: antialiased circular mask instead of the black key, Lanczos downscale in
+# linear light, light unsharp to restore crispness at 146px.
 if wget --timeout="$WGET_TIMEOUT" --tries=2 -O - "$URL" | \
-   convert - -fuzz 10% -transparent black -resize 146x146 -strip "$TEMP_FILE"; then
+   convert - -colorspace RGB \
+     \( +clone -alpha off -fill black -colorize 100 -fill white -draw "circle 299.5,299.5 299.5,1" \) \
+     -alpha off -compose CopyOpacity -composite \
+     -filter Lanczos -distort Resize 146x146 -colorspace sRGB \
+     -unsharp 0x0.6+0.6+0.01 -strip "$TEMP_FILE"; then
     if [ -s "$TEMP_FILE" ]; then
         mv "$TEMP_FILE" "$EARTH_IMG"
         # Save a backup copy to persistent storage

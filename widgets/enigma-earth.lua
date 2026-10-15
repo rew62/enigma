@@ -25,7 +25,8 @@ local SIZE       = 150
 local MARGIN     = 2
 
 -- Tuning knobs
-local BRIGHTNESS = 0.12   -- ADD-blend white alpha: 0=off, 0.25=strong lift
+-- local BRIGHTNESS = 0.12   -- ADD-blend white alpha: 0=off, 0.25=strong lift
+local BRIGHTNESS = 0      -- off: the lift washed out contrast; image is sharpened at fetch instead
 local CLIP_GLOBE = true   -- clip to circle so black corners never show
 
 -- CAIRO_OPERATOR_ADD (12) is a base Cairo constant; define numerically in case
