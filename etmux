@@ -7,9 +7,6 @@ PANES_PER_WINDOW=4
 # --- Resolve base directory of this script ---
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# --- Sample wallpaper luminance for theme.lua bg_alpha ---
-"$BASE_DIR/scripts/sample-luma.sh"
-
 # --- 150px widget positioning: gap_x vs border_inner_margin ---
 # border_inner_margin only inflates the window around conky.text content —
 # it does nothing for pure-lua widgets (empty conky.text, drawn via

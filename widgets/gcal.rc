@@ -36,7 +36,7 @@ conky.config = {
     default_shade_color = '000000',
 
     -- ── timing ───────────────────────────────────────────────────────────────
-    update_interval    = 600,             -- refresh every 10 minutes
+    update_interval    = 60,              -- redraw (auto pane); gcal.lua refetches every 10 min
     total_run_times    = 0,
 
     -- ── lua ──────────────────────────────────────────────────────────────────

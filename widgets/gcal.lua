@@ -27,7 +27,11 @@ local BX      = X + 5   -- bullet dot center x
 local TX      = X + 13  -- event text left edge
 local TW      = W - TX - 5  -- max text width (~127px)
 
-local _cache = { days = nil, height = 0 }
+local _cache = { days = nil, height = 0, raw = nil, fetched = nil }
+
+-- gcalcli is a network call; gcal.rc's update_interval (60s, short so the
+-- auto pane follows a wallpaper change) redraws more often than this refetches.
+local FETCH_EVERY = 600
 
 -- ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -238,8 +242,11 @@ local function compute_height(days)
 end
 
 function gcal_prefetch()
-    local raw     = run_gcalcli()
-    _cache.days   = parse(raw)
+    local now = os.time()
+    if _cache.raw == nil or now - _cache.fetched >= FETCH_EVERY then
+        _cache.raw, _cache.fetched = run_gcalcli(), now
+    end
+    _cache.days   = parse(_cache.raw)
     _cache.height = compute_height(_cache.days)
     return _cache.height
 end

@@ -224,7 +224,7 @@ echo
 read -p "Install/verify dependencies via apt? (yes/no): " INSTALL_DEPS
 if [[ "$INSTALL_DEPS" =~ ^[Yy][Ee]?[Ss]?$ ]]; then
     # Library/font packages with no CLI to probe; apt handles these safely.
-    APT_PACKAGES=(python3-ephem fonts-ibm-plex)
+    APT_PACKAGES=(python3-ephem python3-xlib python3-numpy fonts-ibm-plex)
     # Package → command it provides. If the command already exists (apt,
     # curl, pip, or source install), skip the apt package rather than
     # shadow or duplicate the user's copy.

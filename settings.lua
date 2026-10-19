@@ -6,7 +6,11 @@
 local theme = {
     bg_color     = 0x1e1e2e,
     fg_color     = 0xcdd6f4,
-    bg_alpha     = nil,      -- nil = derive from luma; set explicitly to override
+    bg_alpha     = nil,      -- nil = solve per widget from the wallpaper; a number overrides
+    bg_contrast  = 7,        -- auto: fg_color vs pane-over-wallpaper contrast ratio to hold
+    bg_alpha_min = 0,        -- auto: clamp range for the solved alpha
+    bg_alpha_max = 0.9,
+    bg_alpha_pull = 0.35,    -- auto: share of the way each pane moves towards the most opaque
     border_color = 0x000000, -- unused; border_alpha=0 hides it
     border_width = 0,
     border_alpha = 0.0,
@@ -18,19 +22,6 @@ local theme = {
     divider_color  = 0xf2f2f2, -- RGB hex
     divider_alpha  = 0.35,   -- opacity
 }
-
-local function read_luma()
-    local fh = io.open("/dev/shm/conky/enigma_luma", "r")
-    if not fh then return nil end
-    local v = tonumber(fh:read("*l"))
-    fh:close()
-    return v
-end
-
-if theme.bg_alpha == nil then
-    local luma = read_luma()
-    theme.bg_alpha = luma and (luma * 4.0) or 0.0
-end
 
 for k, v in pairs(theme) do
     if _G[k] == nil then _G[k] = v end

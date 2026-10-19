@@ -322,6 +322,7 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
 │   └── start-lyrics-conky.sh                 launches active-player.sh + lyrics conky together
 ├── scripts/                            - shared scripts and Lua libraries
 │   ├── draw_bg.lua                     - shared background/divider drawing
+│   ├── enigma_bg.py                    - wallpaper sampler for automatic pane opacity
 │   ├── env.lua                         - .env loader (env.get)
 │   ├── functions.lua
 │   ├── json.lua
@@ -331,7 +332,6 @@ From a running Now Playing widget, Shift+Left-click toggles lyrics and Shift+Rig
 │   ├── music_info.sh                   - playerctl track info for song-info.rc
 │   ├── nws_fetch.lua
 │   ├── owm_fetch.lua
-│   ├── sample-luma.sh                  - wallpaper luminance sampler (sets bg_alpha)
 │   ├── sky_update.py                   - arc sky/planet data updater
 │   └── window.lua                      - mouse event handler (Ctrl+click positioning)
 ├── utils/
@@ -402,7 +402,7 @@ Everything is plain text -- no generated or binary config. Four layers, from bro
 
 **1. `.env` — machine & location.** Created by `./enigma-config.sh`, hand-editable afterward (keep values unquoted). Keys are listed in [Getting Started](#getting-started); `.env-example` is the format reference. One optional key the wizard doesn't prompt for: `NWS_STATION` forces a specific NWS observation station (e.g. `NWS_STATION=KIAD`) instead of the nearest one.
 
-**2. `settings.lua` — theme & per-widget wiring.** The `theme` table at the top sets global colors, fonts, background alpha, and divider style. The `WIDGET_CONFIG` table below it holds per-widget values keyed by rc basename: `divider` edge rules (`"top"`, `"bottom"`, `"top,bottom"`), fixed `target_width`/`target_height`, and `globals` such as `WINDOW_MOUSE_HOOK = false` (disables click-to-move/kill for that widget).
+**2. `settings.lua` — theme & per-widget wiring.** The `theme` table at the top sets global colors, fonts, background alpha, and divider style. With `bg_alpha = nil` (the default) each widget's pane opacity is solved live from the wallpaper behind it, so `fg_color` keeps `bg_contrast` (7:1) against it: `scripts/enigma_bg.py` samples the desktop background (X11 `_XROOTPMAP_ID`) and re-runs when the wallpaper changes or a widget moves. Set `bg_alpha` to a number to fix it instead. The `WIDGET_CONFIG` table below it holds per-widget values keyed by rc basename: `divider` edge rules (`"top"`, `"bottom"`, `"top,bottom"`), fixed `target_width`/`target_height`, and `globals` such as `WINDOW_MOUSE_HOOK = false` (disables click-to-move/kill for that widget).
 
 **3. Feature files** — each commented inline:
 

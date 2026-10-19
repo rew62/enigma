@@ -13,7 +13,7 @@ conky.config = {
   own_window_title  = 'multimon',
   own_window_argb_value = 0,
 
-  update_interval = 600,
+  update_interval = 60,   -- redraw (auto pane); multimon.sh still execpi 3600
 
   double_buffer = true,
   no_buffers = true,

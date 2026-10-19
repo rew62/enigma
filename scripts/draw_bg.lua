@@ -1,6 +1,7 @@
 -- draw_bg.lua - Shared Cairo background + divider utilities for enigma widgets
 -- Reads bg_color, bg_alpha, divider, divider_color, divider_alpha, divider_width
--- from globals set by theme/settings.
+-- from globals set by theme/settings; bg_alpha = nil solves it from the
+-- wallpaper (see "automatic pane opacity" below).
 -- draw_bg()             → full window background
 -- draw_bg(w, h)         → custom size background
 -- draw_dividers(cr,w,h) → top/bottom hairlines per divider global
@@ -65,9 +66,132 @@ function draw_dividers(cr, w, h)
     end
 end
 
+-- ── automatic pane opacity ───────────────────────────────────────────────────
+-- bg_alpha = nil (settings.lua default): the pane's alpha is solved so that
+-- fg_color holds bg_contrast against the wallpaper behind this window.
+-- scripts/enigma_bg.py (one resident copy for the suite, started here when
+-- not running) samples the brightest-ish wallpaper pixel behind every
+-- registered widget into BG_DIR/samples.lua and bumps BG_DIR/serial; each
+-- widget re-reads only when serial moves, solves every widget's alpha, and
+-- pulls its own bg_alpha_pull of the way towards the most opaque so
+-- neighbouring panes read as one material.
+
+local BG_DIR     = "/dev/shm/enigma/bg"
+local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (os.getenv("HOME") or "") .. "/.conky/enigma"
+local HELPER     = ENIGMA_DIR .. "/scripts/enigma_bg.py"
+local HELPER_CHECK_EVERY = 30
+
+local _auto = { alpha = 0, serial = nil, tick = nil, helper_at = nil, registered = false, synced = false }
+
+local function rgb01(c)
+    return ((c // 0x10000) % 0x100) / 255, ((c // 0x100) % 0x100) / 255, (c % 0x100) / 255
+end
+
+local function luminance(r, g, b)
+    local function lin(c) return c <= 0.04045 and c / 12.92 or ((c + 0.055) / 1.055) ^ 2.4 end
+    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+end
+
+local function contrast(la, lb)
+    if la < lb then la, lb = lb, la end
+    return (la + 0.05) / (lb + 0.05)
+end
+
+-- Smallest pane alpha giving fg_color bg_contrast over wallpaper colour wall;
+-- cairo blends in sRGB, so mix there and measure in linear light.
+local function solve_alpha(wall, pane, ink_l, target)
+    local function at(a)
+        return contrast(ink_l, luminance(
+            a * pane[1] + (1 - a) * wall[1],
+            a * pane[2] + (1 - a) * wall[2],
+            a * pane[3] + (1 - a) * wall[3]))
+    end
+    if at(0) >= target then return 0 end
+    if at(1) < target then return 1 end
+    local lo, hi = 0, 1
+    for _ = 1, 16 do
+        local mid = (lo + hi) / 2
+        if at(mid) >= target then hi = mid else lo = mid end
+    end
+    return hi
+end
+
+local function read_line(path)
+    local f = io.open(path, "r")
+    if not f then return nil end
+    local s = f:read("*l")
+    f:close()
+    return s
+end
+
+local function helper_running()
+    local pid = tonumber(read_line(BG_DIR .. "/pid") or "")
+    if not pid then return false end
+    local cmd = read_line("/proc/" .. pid .. "/cmdline")
+    return cmd ~= nil and cmd:find("enigma_bg.py", 1, true) ~= nil
+end
+
+local function auto_alpha()
+    local now = os.time()
+    if now == _auto.tick then return _auto.alpha end
+    _auto.tick = now
+    local name = conky_script_name
+
+    if not _auto.registered and name then
+        os.execute("mkdir -p " .. BG_DIR .. "/members")
+        local f = io.open(BG_DIR .. "/members/" .. name, "w")
+        if f then f:close(); _auto.registered = true end
+    end
+    if _auto.helper_at == nil or now - _auto.helper_at >= HELPER_CHECK_EVERY then
+        _auto.helper_at = now
+        if not helper_running() then
+            os.execute("python3 '" .. HELPER .. "' >> " .. BG_DIR .. "/log 2>&1 &")
+        end
+    end
+
+    local function load_samples()
+        local chunk = loadfile(BG_DIR .. "/samples.lua", "t", {})
+        local ok, samples = pcall(chunk or error)
+        if ok and type(samples) == "table" and samples[name] ~= nil then return samples end
+    end
+
+    -- First draw with no sample for this window yet: scan once and wait, so
+    -- a widget with a long update_interval doesn't keep an alpha-0 pane
+    -- until its next update.
+    if not _auto.synced then
+        _auto.synced = true
+        if not load_samples() then
+            os.execute("python3 '" .. HELPER .. "' --once >> " .. BG_DIR .. "/log 2>&1")
+        end
+    end
+
+    local serial = read_line(BG_DIR .. "/serial")
+    if serial == nil or serial == _auto.serial then return _auto.alpha end
+    local samples = load_samples()
+    if not samples then return _auto.alpha end
+    _auto.serial = serial
+
+    local pane = { rgb01((type(bg_color) == "number") and bg_color or 0x1e1e2e) }
+    local ink_l = luminance(rgb01((type(fg_color) == "number") and fg_color or 0xcdd6f4))
+    local target = (type(bg_contrast) == "number") and bg_contrast or 7
+    local mine, most = 0, 0
+    for k, wall in pairs(samples) do
+        local a = solve_alpha(wall, pane, ink_l, target)
+        if k == name then mine = a end
+        if a > most then most = a end
+    end
+    local pull = (type(bg_alpha_pull) == "number") and bg_alpha_pull or 0.35
+    local a = mine + (most - mine) * pull
+    local lo = (type(bg_alpha_min) == "number") and bg_alpha_min or 0
+    local hi = (type(bg_alpha_max) == "number") and bg_alpha_max or 0.9
+    _auto.alpha = math.max(lo, math.min(hi, a))
+    print(string.format("[%s] auto bg_alpha %.2f (own %.2f, suite max %.2f)", name, _auto.alpha, mine, most))
+    return _auto.alpha
+end
+
 function draw_bg(w, h)
     if conky_window == nil then return end
-    local bg_a = (type(bg_alpha) == "number") and bg_alpha or 0
+    local bg_a = (type(bg_alpha) == "number") and bg_alpha or auto_alpha()
     if bg_a <= 0 then return end
     local _bc = (type(bg_color) == "number") and bg_color or 0x1e1e2e
     local cw = conky_window
