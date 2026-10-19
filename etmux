@@ -56,6 +56,10 @@ MAP[zen]="utils|enigma-logo.lua"
 MAP[zkr]="utils|kroy.lua"
 MAP[x-au-m]="~/.conky/conky-aurora/moon|moon.rc"
 MAP[x-au-s]="~/.conky/conky-aurora/system|system.rc"
+MAP[x-hz]="~/.conky/logan/horizon-v2|conky.conf"
+MAP[x-og]="~/.conky/Conky-themes/orrery-galaxy|orrery3d.conkyrc"
+MAP[x-rw-m]="~/.conky/retrowave|meteor.lua"
+MAP[x-rw-s]="~/.conky/retrowave|sun3.lua"
 
 # --- Named groups ---
 declare -A NAMED_GROUPS
@@ -81,6 +85,21 @@ HEIGHTS_DIR=/dev/shm/enigma/heights   # live heights published by draw_bg.lua
 declare -A COLUMN_X COLUMN_Y
 COLUMN_X[column1]=5    COLUMN_Y[column1]=50
 COLUMN_X[column2]=170  COLUMN_Y[column2]=50
+
+# --- Pinned groups: fixed per-widget -x/-y instead of rc coordinates ---
+# PIN[group:code]="gap_x gap_y", in each widget's own rc alignment (gap_x runs
+# right-to-left for *_right AND *_middle; gap_y bottom-to-top for bottom_*).
+# Captured 2026-10-15 from a live desktop: each value was confirmed by
+# launching a test copy and matching its window to the running one.
+declare -A PIN
+NAMED_GROUPS[rew]="ec em wt wf c ecg ev m si a sd3 zen zkr e xn x-rw-s x-rw-m x-og x-hz"
+PIN[rew:ec]="7 52"         PIN[rew:em]="7 206"       PIN[rew:wt]="7 309"
+PIN[rew:wf]="8 374"        PIN[rew:c]="7 478"        PIN[rew:ecg]="7 852"
+PIN[rew:ev]="5 1139"       PIN[rew:m]="174 54"       PIN[rew:si]="170 357"
+PIN[rew:a]="-1125 106"     PIN[rew:sd3]="-1124 786"  PIN[rew:zen]="360 0"
+PIN[rew:zkr]="3096 643"    PIN[rew:e]="171 501"      PIN[rew:xn]="3285 1274"
+PIN[rew:x-rw-s]="0 0"      PIN[rew:x-rw-m]="0 0"
+PIN[rew:x-og]="-576 362"   PIN[rew:x-hz]="-587 634"
 
 # Measured window heights (px, includes border_inner_margin), used when no
 # live measurement exists in HEIGHTS_DIR yet. Measured 2026-07-03.
@@ -235,6 +254,10 @@ show_help() {
     echo "    zkr         killroy was here!"
     echo "    x-au-m      Aurora Moon"
     echo "    x-au-s      Aurora System"
+    echo "    x-hz        Horizon v2 (logan)"
+    echo "    x-og        Orrery Galaxy 3D"
+    echo "    x-rw-m      Retrowave Meteor"
+    echo "    x-rw-s      Retrowave Sun"
     echo ""
     echo "  Groups:"
     for g in $(printf '%s\n' "${!NAMED_GROUPS[@]}" | sort); do
@@ -243,7 +266,7 @@ show_help() {
     echo ""
     echo "  column* groups auto-stack top-to-bottom with -x/-y overrides"
     echo "  (measured heights + ${COLUMN_GAP}px gap); other groups/codes launch at"
-    echo "  native rc coordinates."
+    echo "  native rc coordinates, except groups with PIN[group:code] entries."
     echo ""
     echo "  Example: $(basename "$0") t wc wf a"
     echo ""
@@ -424,6 +447,9 @@ for arg in "$@"; do
         read -ra gcodes <<< "${NAMED_GROUPS[$arg]}"
         expanded+=("${gcodes[@]}")
         [[ "${arg,,}" == column* ]] && stack_column "$arg" "${gcodes[@]}"
+        for c in "${gcodes[@]}"; do
+            [ -n "${PIN[$arg:$c]}" ] && read -r 'POS_X[$c]' 'POS_Y[$c]' <<< "${PIN[$arg:$c]}"
+        done
     else
         expanded+=("$arg")
     fi
@@ -509,7 +535,7 @@ for code in "${FILTERED[@]}"; do
     # cmd="env WAYLAND_DISPLAY= XDG_SESSION_TYPE=x11 conky -c $rc"
     cmd="conky -c $rc"
 
-    # COLUMN group member: override position (keep flags after "-c $rc" so
+    # COLUMN/PIN group member: override position (keep flags after "-c $rc" so
     # the pgrep already-running pattern above still matches)
     if [ -n "${POS_X[$code]}" ]; then
         cmd="conky -c $rc -x ${POS_X[$code]} -y ${POS_Y[$code]}"
