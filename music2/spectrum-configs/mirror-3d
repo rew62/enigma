@@ -1,0 +1,40 @@
+bars=20                              -- nr of bars must be set in cava-config!!! (needs a restart of conky)
+max=1000                      		 -- max value of bars
+cap="b"                       		 -- End of cap line (r,b,s) for round, butt, square
+x=22                          		 -- First bar vertical position
+y=54                          		 -- Bars horizontal positions
+barspaces=2                   		 -- Spaces between bars
+angle_bar=0                   		 -- Set angle of bar (make it circular)
+radius=0                      		 -- Radius of the circle
+rainbow_colours=0             		 -- Rainbow colors on or off  ("1" or "0")
+fg_colour={0x00bbff,1}        		 -- Foreground color of activated blocks (disabled when rainbow is on)
+bg_colour={0x227766,0}        		 -- Background color of deactived blocks (disabled when rainbow is on)
+alarm_colour={0xff8700,1}     		 -- Gradient color to the max (disabled when rainbow is on)
+smooth=true                   		 -- Smooth bars
+led_effect="3d"               		 -- Led effects. "3d", "e", "a", "r" or empty  (has no effect on angled or skewed bars)
+led_effect_shadow="mid"       		 -- Led effect shadow. "mid", "left", "right", "glow1", "glow2"  (has no effect on angled or skewed bars)
+blockspaces=1                 		 -- Space between the blocks
+blocks=44                     		 -- Nr of blocks per bar
+falling_blocks=1              		 -- 1 = enabled, 0 = disabled
+falling_led_effect=1          		 -- Led effects on falling blocks 1 = enabled, 0 = disabled (no affect on rainbow)
+falling_block_fade=1          		 -- Falling block fades to transparent (use falling_colour for starting point of alpha)
+falling_speed=0.5             		 -- Speed that blocks fall per conky update  (0.01 - 10)
+falling_delay=3               		 -- Updates to wait before falling
+falling_direction="up"        		 -- Falling direction of blocks "up" or "down"
+falling_colour={0xff8700,1}   		 -- Color of falling block, alpha is used in fade (no affect on rainbow)
+height=2                      		 -- Height of a block
+width=14                      		 -- Width of a block
+angle=0                       		 -- Angle of all bars
+skew_x=0                      		 -- Skew bars (can be negative number)
+skew_y=0                      		 -- Skew blocks (can be negative number)
+reflection="b"                		 -- Position of the reflection ("b","t","l","r" for bottom, top, left, right)
+reflection_alpha=1            		 -- Alpha blend of reflection (0 to 1)
+reflection_length=1           		 -- Length of reflection (0 to 1)
+reflection_scale=1            		 -- Scale/stretch of reflection (can only be higher then 0)
+reflection_fade="n"           		 -- Fade to transparent yes or no ("y" or "n")
+reflection_spacing=1          		 -- Spacing between bars and reflection, smaller is more spacing (0.01 to 2)
+circular=0                    		 -- 0 = straight bars, 1 = circular spectrum
+circle_radius=80              		 -- distance from center to bar base
+circle_start=-90              		 -- starting angle in degrees
+circle_x=0                    		 -- center X (0 = window center)
+circle_y=0                    		 -- center Y (0 = window center)

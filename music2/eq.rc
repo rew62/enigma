@@ -53,8 +53,13 @@ ${lua main_bars}
 #
 # Configs:      blocks
 #               bubbles
+#               circle
+#               circle-skewed
+#               circle-skewed2
 #               default
+#               default-3d
 #               default-flip
+#               default-flip-mirror
 #               default-flip-reflection
 #               default-reflection
 #               default-slick
@@ -62,11 +67,22 @@ ${lua main_bars}
 #               fade2
 #               flames
 #               half-bubbles
+#               matchsticks
+#               mirror
+#               mirror-3d
+#               mirror-glow
+#               mirror-space
+#               rainbow
+#               rainbow-mirror
+#               rainbow-reflection
+#               rainbow-rings
+#               rew62
+#               rew62t
 #               rings
 #               rings-small
-#               rew62
 #               skewed1
 #               skewed2
+#               skewed-rainbow
 #               skewed-transparent
 #
 ]];
