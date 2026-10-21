@@ -48,7 +48,7 @@ conky.config = {
 
 conky.text = [[
 #
-${lua main_bars}
+${lua_parse main_bars}
 #               ^^^^^  Set the spectrum config to load
 #
 # Configs:      blocks

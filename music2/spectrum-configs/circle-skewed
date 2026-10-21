@@ -14,7 +14,7 @@ smooth=true                   		 -- Smooth bars
 led_effect=""                 		 -- Led effects. "3d", "e", "a", "r" or empty  (has no effect on angled or skewed bars)
 led_effect_shadow=""          		 -- Led effect shadow. "mid", "left", "right", "glow1", "glow2"  (has no effect on angled or skewed bars)
 blockspaces=-1                		 -- Space between the blocks
-blocks=27                     		 -- Nr of blocks per bar
+blocks=85                     		 -- Nr of blocks per bar
 falling_blocks=1              		 -- 1 = enabled, 0 = disabled
 falling_led_effect=0          		 -- Led effects on falling blocks 1 = enabled, 0 = disabled (no affect on rainbow)
 falling_block_fade=0          		 -- Falling block fades to transparent (use falling_colour for starting point of alpha)
@@ -23,7 +23,7 @@ falling_delay=4               		 -- Updates to wait before falling
 falling_direction="down"      		 -- Falling direction of blocks "up" or "down"
 falling_colour={0xff8700,1}   		 -- Color of falling block, alpha is used in fade (no affect on rainbow)
 height=2                      		 -- Height of a block
-width=6                       		 -- Width of a block
+width=18                      		 -- Width of a block
 angle=0                       		 -- Angle of all bars
 skew_x=60                     		 -- Skew bars (can be negative number)
 skew_y=1                      		 -- Skew blocks (can be negative number)
@@ -34,7 +34,8 @@ reflection_scale=1            		 -- Scale/stretch of reflection (can only be hig
 reflection_fade="y"           		 -- Fade to transparent yes or no ("y" or "n")
 reflection_spacing=0.08       		 -- Spacing between bars and reflection, smaller is more spacing (0.01 to 2)
 circular=1                    		 -- 0 = straight bars, 1 = circular spectrum
-circle_radius=22              		 -- distance from center to bar base
+circle_radius=80              		 -- distance from center to bar base
 circle_start=-90              		 -- starting angle in degrees
 circle_x=0                    		 -- center X (0 = window center)
 circle_y=0                    		 -- center Y (0 = window center)
+window_height=360             		 -- grow the window to this height while active

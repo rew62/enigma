@@ -74,6 +74,9 @@ circle_radius       - distance from centre to bar base, default=120
 circle_start        - angle of the first bar in degrees, default=-90 (top)
 circle_x, circle_y  - centre, 0 = window centre
 
+window_height       - grow the window to this height while the config is active
+                      (needs ${lua_parse main_bars}); omit to keep eq.rc's minimum_height
+
 v1.1 (13 Feb. 2010)  numeric values can be passed instead conky stats with parameters name="", arg = numeric_value
 v1.3 (03 March 2010) added parameters radius & angle_bar to draw the bar in a circular way
 v2.0 (12 Jul. 2010)  rewrite script + add reflection effects and parameters are now set into tables
@@ -274,7 +277,26 @@ local CONFIG_KEYS = {
     "falling_blocks", "falling_speed", "falling_delay", "falling_direction",
     "falling_colour", "falling_block_fade", "falling_led_effect",
     "circular", "circle_radius", "circle_start", "circle_x", "circle_y",
+    "window_height",
 }
+
+-- Dynamic window height: conky sizes its window to the text, so main_bars
+-- (called via ${lua_parse}) pads the text with a voffset. The text/margin
+-- overhead on top of the voffset is learned from the window conky produces.
+local win_pad, win_overhead, win_base = 0, 20, nil
+local function window_pad()
+    local h = conky_window.height
+    if h <= 0 then return "" end
+    if win_pad == 0 then
+        win_base = h  -- unpadded height = eq.rc's minimum
+    elseif win_base and h > win_base and h ~= win_pad + win_overhead then
+        win_overhead = h - win_pad
+    end
+    local target = tonumber(window_height)
+    win_pad = (target and win_base and target > win_base) and math.floor(target - win_overhead) or 0
+    if win_pad <= 0 then win_pad = 0; return "" end
+    return "${voffset " .. win_pad .. "}"
+end
 
 -- Global config settings
 local last_config = ""
@@ -435,7 +457,7 @@ function conky_main_bars(arg)
 
    -- SETUP CAIRO CONTEXT
    local cs, owns = surface.get()
-   if cs == nil then return "" end
+   if cs == nil then return window_pad() end
    cr = cairo_create(cs)
 
 
@@ -530,7 +552,7 @@ function conky_main_bars(arg)
   -- CLEANUP
   cairo_destroy(cr)
   surface.put(cs, owns)
-  return ""
+  return window_pad()
 end
 
 
