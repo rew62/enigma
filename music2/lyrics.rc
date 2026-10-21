@@ -5,7 +5,7 @@ local ENIGMA_DIR = os.getenv("ENIGMA_DIR") or (HOME .. "/.conky/enigma")
 conky.config = {
 	background = false,
 	alignment = 'top_right',
-	gap_x = 400,
+	gap_x = 429,
 	gap_y = 600,
 	use_xft = true,
 	font = 'Bitstream Charter Regular:size=8',

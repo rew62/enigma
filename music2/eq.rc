@@ -13,8 +13,8 @@
 conky.config = {
 	background = false,
 	alignment = 'top_right',
-	gap_x = 410,
-	gap_y = 720,
+	gap_x = 439,
+	gap_y = 733,
 	minimum_width = 340,
 	minimum_height = 100,
 	draw_borders = false,

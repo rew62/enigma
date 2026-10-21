@@ -93,7 +93,7 @@ NAMED_GROUPS[rew]="ec em wt wf c ecg ev m si a sd3 zen zkr e xn x-rw-s x-rw-m x-
 PIN[rew:ec]="7 52"         PIN[rew:em]="7 206"       PIN[rew:wt]="7 309"
 PIN[rew:wf]="8 374"        PIN[rew:c]="7 478"        PIN[rew:ecg]="7 852"
 PIN[rew:ev]="5 1139"       PIN[rew:m]="174 54"       PIN[rew:si]="170 357"
-PIN[rew:a]="-1125 106"     PIN[rew:sd3]="-1124 786"  PIN[rew:zen]="360 0"
+PIN[rew:a]="-1125 106"     PIN[rew:sd3]="-1121 823"  PIN[rew:zen]="360 0"
 PIN[rew:zkr]="3096 643"    PIN[rew:e]="171 501"      PIN[rew:xn]="3285 1274"
 PIN[rew:x-rw-s]="0 0"      PIN[rew:x-rw-m]="0 0"
 PIN[rew:x-og]="-576 362"   PIN[rew:x-hz]="-587 634"
